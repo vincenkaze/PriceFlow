@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #0f0f0f; color: #0f0; text-align: center; padding: 50px; }
+        h1 { font-size: 3em; }
+        .status { color: #0f0; font-size: 1.5em; }
+        .btn { padding: 15px 30px; background: #0f0; color: black; text-decoration: none; border-radius: 8px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1> PriceFlow</h1>
+    <p class="status">Intelligent Dynamic Pricing System</p>
+    <p>200 simulated users are currently going absolutely feral in the background</p>
+    <p>Simulation tick rate: {{ num_sim_users }} users every {{ tick_rate }} seconds</p>
+    
+    <a href="/status" class="btn">Check JSON Status</a>
+    <br><br>
+    <small>Next up: Admin dashboard + live price changes... we're cooking</small>
+</body>
+</html>
