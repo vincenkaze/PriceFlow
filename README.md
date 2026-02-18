@@ -1,4 +1,4 @@
-# Intelligent Dynamic Pricing System for E-Commerce
+# PriceFlow
 
 ![Project Banner](https://via.placeholder.com/1200x300?text=Dynamic+Pricing+Engine)  <!-- Add a real image later, maybe a flowchart -->
 
