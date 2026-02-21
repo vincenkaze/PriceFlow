@@ -1,18 +1,24 @@
-# run.py
 from app import create_app
+from modules.user_simulation import simulation
 import os
 
-
-# Create app with default (development) config
 app = create_app()
 
 if __name__ == '__main__':
-    # Optional: create instance folder if it doesn't exist
     os.makedirs('instance', exist_ok=True)
-    
-    print(" Starting Intelligent Dynamic Pricing System...")
-    print("   Simulation ready • 200 fake users • Prices will move like crazy")
+
+    print("\n Starting Intelligent Dynamic Pricing System...")
+    print("   200 Optimists, Pessimists, Bargain Hunters & Impulse Buyers are now feral")
     print("   Visit → http://127.0.0.1:5000")
-    
-    # Run with debug + auto-reload (perfect for our chaotic dev life)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+
+    # Start simulation safely
+    with app.app_context():
+        simulation.start(app)
+
+    # CRITICAL: disable reloader
+    app.run(
+        host='0.0.0.0',
+        port=5000,
+        debug=True,
+        use_reloader=False
+    )

@@ -1,4 +1,5 @@
-# Intelligent Dynamic Pricing System for E-Commerce
+<<<<<<< HEAD
+# PriceFlow
 
 ![Project Banner](https://via.placeholder.com/1200x300?text=Dynamic+Pricing+Engine)  <!-- Add a real image later, maybe a flowchart -->
 
@@ -60,3 +61,7 @@ Inspired by real-world systems like Amazon or Uber, but simulation-only (no real
 Contributions welcome—fork and PR! Questions? Hit issues.
 
 MIT License – Built with by vincenkaze.
+=======
+# PriceFlow
+Simulation-based intelligent pricing engine that dynamically adjusts product prices based on demand, stock, and pricing rules.
+>>>>>>> 20d5219d10cb11fa61ac02ff466900fef3ca848c

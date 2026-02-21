@@ -1,4 +1,3 @@
-# app/config.py
 import os
 from datetime import timedelta
 
@@ -15,7 +14,7 @@ class Config:
     # === SESSION ===
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=60)
     
-    # === PROJECT-SPECIFIC MAGIC (this is what makes us special) ===
+    # === PROJECT-SPECIFIC CONFIG ===
     NUM_SIMULATED_USERS = 200                   # exactly as in your prescription PDFs
     SIMULATION_TICK_RATE = 4                    # seconds between simulation cycles (feels alive)
     DEMAND_WINDOW_MINUTES = 15                  # how far back we calculate demand score
