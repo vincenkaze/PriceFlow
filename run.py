@@ -1,5 +1,6 @@
 from app import create_app
 from modules.user_simulation import simulation
+from modules.pricing_engine import pricing_engine
 import os
 
 app = create_app()
@@ -14,6 +15,7 @@ if __name__ == '__main__':
     # Start simulation safely
     with app.app_context():
         simulation.start(app)
+        pricing_engine.start(app)
 
     # CRITICAL: disable reloader
     app.run(

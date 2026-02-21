@@ -5,7 +5,8 @@ import sqlite3
 # Add project root to Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from app import create_app, db
+from app import create_app
+from app.extensions import db
 from app.models import Category, UserType, Product, SimulatedUser
 import random
 

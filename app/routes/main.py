@@ -1,4 +1,3 @@
-# app/routes/main.py
 from flask import Blueprint, render_template, current_app
 from datetime import datetime
 
