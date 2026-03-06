@@ -60,7 +60,3 @@ Inspired by real-world systems like Amazon or Uber, but simulation-only (no real
 Contributions welcome—fork and PR! Questions? Hit issues.
 
 MIT License – Built with by vincenkaze.
-
-=======
-# PriceFlow
-Simulation-based intelligent pricing engine that dynamically adjusts product prices based on demand, stock, and pricing rules.
