@@ -3,6 +3,8 @@ from typing import Dict, List, Optional, Tuple
 from sqlalchemy import func, case, distinct
 from app.extensions import db
 from app.models import DemandScore, Product, UserAction
+import time
+import threading
 
 
 class DemandAnalyzer:
@@ -32,6 +34,23 @@ class DemandAnalyzer:
             for action, weight in self.action_weights.items()
         ]
 
+    def start(self, flask_app, interval: int = 15):
+        """Run demand analysis periodically in background"""
+        self.app = flask_app
+        self.running = True
+        self.thread = threading.Thread(target=self._run_loop, daemon=True)
+        self.thread.start()
+        print(f" Demand Analyzer started — refreshing every {interval}s")
+
+    def _run_loop(self):
+        with self.app.app_context():
+            while self.running:
+                try:
+                    self.refresh_active_products()
+                except Exception as e:
+                    print(f" Demand analysis error: {e}")
+                time.sleep(15)  # Refresh every 15 seconds
+    
     def _get_window(self, end_time: Optional[datetime] = None) -> Tuple[datetime, datetime]:
         end = end_time or datetime.utcnow()
         start = end - timedelta(minutes=self.lookback_minutes)
