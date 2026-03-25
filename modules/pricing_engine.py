@@ -57,7 +57,7 @@ class PricingEngine:
             new_price = old_price
             reason = "Stable"
 
-            # Heuristic rules (from your pipeline.pdf)
+            # Heuristic rules 
             if demand_score > 80 and stock_ratio < 0.4:
                 new_price = min(product.base_price * 1.5, old_price * 1.08)
                 reason = "High demand + low stock"
