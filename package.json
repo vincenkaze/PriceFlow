@@ -1,0 +1,27 @@
+{
+  "name": "priceflow",
+  "version": "1.0.0",
+  "description": "![Project Banner](https://via.placeholder.com/1200x300?text=Dynamic+Pricing+Engine)  <!-- Add a real image later, maybe a flowchart -->",
+  "main": "index.js",
+  "scripts": {
+    "build:css": "npx tailwindcss -i ./static/css/input.css -o ./static/css/output.css",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vincenkaze/PriceFlow.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/vincenkaze/PriceFlow/issues"
+  },
+  "homepage": "https://github.com/vincenkaze/PriceFlow#readme",
+  "devDependencies": {
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^3.4.1"
+  }
+}

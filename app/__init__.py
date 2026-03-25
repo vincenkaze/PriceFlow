@@ -6,7 +6,6 @@ from .config import config
 from .extensions import db, migrate
 
 def create_app(config_name='development'):
-    # Use flask_app name to avoid the "module 'app' has no attribute" error
     flask_app = Flask(
         __name__,
         template_folder=os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates'),
@@ -19,12 +18,15 @@ def create_app(config_name='development'):
     db.init_app(flask_app)
     migrate.init_app(flask_app, db)
 
-    #  THIS LINE IS CRITICAL — makes all your models visible to Alembic
+    # Make models visible to Alembic
     import app.models
 
-    # Register blueprints
+    # ================== REGISTER BLUEPRINTS ==================
     from .routes.main import main_bp
     flask_app.register_blueprint(main_bp)
+
+    from .routes.admin import admin_bp         
+    flask_app.register_blueprint(admin_bp, url_prefix='/admin')
 
     # Context processor
     @flask_app.context_processor
@@ -33,6 +35,6 @@ def create_app(config_name='development'):
 
     print(f" PriceFlow App created in {config_name.upper()} mode")
     print(f"   DB → {flask_app.config['SQLALCHEMY_DATABASE_URI']}")
-    print("    Models loaded | Routes ready | Simulation ready to go feral")
+    print("    Models loaded | Main + Admin routes registered")
 
     return flask_app

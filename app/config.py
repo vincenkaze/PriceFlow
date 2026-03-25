@@ -13,6 +13,9 @@ class Config:
     
     # === SESSION ===
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=60)
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+    SESSION_COOKIE_SAMESITE = 'Lax'
     
     # === PROJECT-SPECIFIC CONFIG ===
     NUM_SIMULATED_USERS = 200                   # exactly as in your prescription PDFs

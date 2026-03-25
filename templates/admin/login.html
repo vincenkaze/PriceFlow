@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal - PriceFlow</title>
+  
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Our custom styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { colors: { primary: '#135bec' } } }
+    }
+  </script>
+</head>
+<body class="body">
+<div class="page">
+  <!-- Background blur -->
+  <div class="bg-blur">
+    <div class="blur top"></div>
+    <div class="blur bottom"></div>
+  </div>
+
+  <div class="wrapper">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <span class="material-symbols-outlined text-3xl">shield_person</span>
+      </div>
+      <h1 class="title">PriceFlow Admin</h1>
+      <p class="subtitle">Secure access for administrative personnel only</p>
+    </div>
+
+    <!-- Card -->
+    <div class="card">
+      <form method="POST" action="{{ url_for('admin.login') }}" class="form">
+        <!-- Username -->
+        <div class="field">
+          <label>Admin Username</label>
+          <div class="input-group">
+            <span class="material-symbols-outlined icon">person</span>
+            <input name="username" class="input" placeholder="Enter your username" type="text" required>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="field">
+          <div class="field-top">
+            <label>Password</label>
+            <a href="#" class="link">Forgot password?</a>
+          </div>
+          <div class="input-group">
+            <span class="material-symbols-outlined icon">lock</span>
+            <input name="password" class="input pr-10" placeholder="••••••••" type="password" required>
+            <button type="button" class="toggle">
+              <span class="material-symbols-outlined">visibility</span>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn">Sign In to Dashboard</button>
+      </form>
+
+      <!-- Footer -->
+      <div class="footer">
+        <a href="#"><span class="material-symbols-outlined">help</span>Contact Support</a>
+        <span class="dot"></span>
+        <a href="{{ url_for('main.home') }}"><span class="material-symbols-outlined">login</span>User Login</a>
+      </div>
+    </div>
+
+    <!-- Security note -->
+    <div class="security">
+      <span class="material-symbols-outlined">verified_user</span>
+      <p>End-to-End Encrypted Session</p>
+    </div>
+  </div>
+
+  <!-- Floating chat (optional) -->
+  <button class="chat">
+    <span class="material-symbols-outlined">chat</span>
+  </button>
+</div>
+</body>
+</html>

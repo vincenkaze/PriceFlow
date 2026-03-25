@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - PriceFlow</title>
+  
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Our custom styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { colors: { primary: '#135bec' } } }
+    }
+  </script>
+</head>
+<body class="body">
+<div class="page">
+  <!-- Background blur -->
+  <div class="bg-blur">
+    <div class="blur top"></div>
+    <div class="blur bottom"></div>
+  </div>
+
+  <div class="wrapper" style="max-width: 1200px;">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <span class="material-symbols-outlined text-3xl">dashboard</span>
+      </div>
+      <h1 class="title">Admin Dashboard</h1>
+      <p class="subtitle">PriceFlow System Overview</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div class="card">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-2xl text-primary">inventory_2</span>
+          <div>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Total Products</p>
+            <p class="text-2xl font-bold">{{ products|length }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-2xl text-primary">trending_up</span>
+          <div>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Demand Scores</p>
+            <p class="text-2xl font-bold">{{ latest_demand|length }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-2xl text-primary">price_change</span>
+          <div>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Price Changes</p>
+            <p class="text-2xl font-bold">{{ recent_changes|length }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-2xl text-primary">person</span>
+          <div>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Actions (24h)</p>
+            <p class="text-2xl font-bold">{{ total_actions }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="card mb-8">
+      <h2 class="text-xl font-bold mb-4">Manual Triggers</h2>
+      <div class="flex flex-wrap gap-3">
+        <a href="{{ url_for('admin.trigger_simulation') }}" class="btn bg-slate-600 hover:bg-slate-700">
+          <span class="material-symbols-outlined">play_arrow</span>
+          Trigger Simulation
+        </a>
+        <a href="{{ url_for('admin.trigger_demand') }}" class="btn bg-slate-600 hover:bg-slate-700">
+          <span class="material-symbols-outlined">analytics</span>
+          Refresh Demand
+        </a>
+        <a href="{{ url_for('admin.trigger_pricing') }}" class="btn bg-slate-600 hover:bg-slate-700">
+          <span class="material-symbols-outlined">attach_money</span>
+          Update Prices
+        </a>
+        <a href="{{ url_for('admin.logout') }}" class="btn bg-red-600 hover:bg-red-700">
+          <span class="material-symbols-outlined">logout</span>
+          Logout
+        </a>
+      </div>
+    </div>
+
+    <!-- Recent Price Changes -->
+    <div class="card">
+      <h2 class="text-xl font-bold mb-4">Recent Price Changes</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-200 dark:border-slate-800">
+              <th class="text-left py-3 px-2">Product</th>
+              <th class="text-left py-3 px-2">Old Price</th>
+              <th class="text-left py-3 px-2">New Price</th>
+              <th class="text-left py-3 px-2">Demand</th>
+              <th class="text-left py-3 px-2">Reason</th>
+              <th class="text-left py-3 px-2">Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for change in recent_changes %}
+            <tr class="border-b border-slate-100 dark:border-slate-800">
+              <td class="py-3 px-2">{{ change.product_id }}</td>
+              <td class="py-3 px-2">${{ change.old_price }}</td>
+              <td class="py-3 px-2 text-primary font-bold">${{ change.new_price }}</td>
+              <td class="py-3 px-2">{{ change.demand_score }}</td>
+              <td class="py-3 px-2">{{ change.change_reason }}</td>
+              <td class="py-3 px-2 text-slate-500">{{ change.timestamp.strftime('%H:%M:%S') }}</td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" class="py-4 text-center text-slate-500">No recent price changes</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Products Table -->
+    <div class="card mt-8">
+      <h2 class="text-xl font-bold mb-4">All Products</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-200 dark:border-slate-800">
+              <th class="text-left py-3 px-2">ID</th>
+              <th class="text-left py-3 px-2">Name</th>
+              <th class="text-left py-3 px-2">Base Price</th>
+              <th class="text-left py-3 px-2">Current Price</th>
+              <th class="text-left py-3 px-2">Stock</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for product in products %}
+            <tr class="border-b border-slate-100 dark:border-slate-800">
+              <td class="py-3 px-2">{{ product.product_id }}</td>
+              <td class="py-3 px-2">{{ product.name }}</td>
+              <td class="py-3 px-2">${{ product.base_price }}</td>
+              <td class="py-3 px-2 text-primary font-bold">${{ product.current_price }}</td>
+              <td class="py-3 px-2">{{ product.stock }}</td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="py-4 text-center text-slate-500">No products found</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

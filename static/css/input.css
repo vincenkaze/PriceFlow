@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== CUSTOM COMPONENTS ===== */
+
+/* Layout */
+.body {
+  @apply font-[Inter] bg-slate-100 dark:bg-[#101622] text-slate-900 dark:text-white;
+}
+
+.page {
+  @apply relative min-h-screen flex items-center justify-center p-4 overflow-hidden;
+}
+
+.wrapper {
+  @apply w-full max-w-[440px] relative z-10;
+}
+
+/* Background blur */
+.bg-blur {
+  @apply absolute inset-0;
+}
+
+.blur {
+  @apply absolute w-[40%] h-[40%] rounded-full blur-[120px];
+}
+
+.blur.top {
+  @apply top-[-10%] left-[-10%];
+  background-color: rgba(19, 91, 236, 0.1);
+}
+
+.blur.bottom {
+  @apply bottom-[-10%] right-[-10%];
+  background-color: rgba(19, 91, 236, 0.05);
+}
+
+/* Header */
+.header {
+  @apply text-center mb-8;
+}
+
+.logo {
+  @apply w-12 h-12 mx-auto mb-4 flex items-center justify-center 
+         rounded-xl bg-primary text-white shadow-lg;
+}
+
+.title {
+  @apply text-3xl font-bold;
+}
+
+.subtitle {
+  @apply text-sm text-slate-500 dark:text-slate-400;
+}
+
+/* Card */
+.card {
+  @apply bg-white dark:bg-[#161f30] border border-slate-200 dark:border-slate-800 
+         rounded-xl p-8 shadow-xl;
+}
+
+/* Form */
+.form {
+  @apply space-y-5;
+}
+
+.field label {
+  @apply text-sm font-medium;
+}
+
+.field-top {
+  @apply flex justify-between items-center text-sm;
+}
+
+.link {
+  @apply text-xs text-primary hover:underline;
+}
+
+/* Input */
+.input-group {
+  @apply relative;
+}
+
+.input {
+  @apply w-full h-12 pl-10 pr-4 rounded-lg border border-slate-200 
+         bg-slate-50 text-sm 
+         focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary
+         dark:bg-slate-900/50 dark:border-slate-700;
+}
+
+.icon {
+  @apply absolute left-3 top-1/2 -translate-y-1/2 text-slate-400;
+}
+
+.toggle {
+  @apply absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600;
+}
+
+/* Button */
+.btn {
+  @apply w-full h-12 bg-primary text-white font-bold rounded-lg 
+         hover:bg-blue-700 transition;
+}
+
+/* Footer */
+.footer {
+  @apply mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 
+         flex justify-center items-center gap-4 text-xs;
+}
+
+.footer a {
+  @apply flex items-center gap-1 text-slate-500 hover:text-primary;
+}
+
+.dot {
+  @apply w-1 h-1 bg-slate-300 rounded-full;
+}
+
+/* Security */
+.security {
+  @apply mt-6 flex items-center justify-center gap-2 text-slate-400 text-xs;
+}
+
+/* Chat button */
+.chat {
+  @apply fixed bottom-6 right-6 w-12 h-12 flex items-center justify-center 
+         rounded-full bg-slate-800 text-white shadow-lg 
+         hover:scale-110 transition;
+}
