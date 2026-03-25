@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== CUSTOM COMPONENTS ===== */
+/* ===== LOGIN STYLES ===== */
 
 /* Layout */
 .body {
@@ -127,4 +127,92 @@
   @apply fixed bottom-6 right-6 w-12 h-12 flex items-center justify-center 
          rounded-full bg-slate-800 text-white shadow-lg 
          hover:scale-110 transition;
+}
+
+/* =========================
+   DASHBOARD STYLES
+========================= */
+
+/* Layout */
+.dashboard {
+  @apply flex min-h-screen bg-[#060e20] text-white;
+}
+
+/* Sidebar */
+.sidebar {
+  @apply w-64 p-6 border-r border-white/10 bg-[#060e20];
+}
+
+.logo-box {
+  @apply flex items-center gap-2 mb-10 text-white font-bold text-xl;
+}
+
+.nav-item {
+  @apply block py-2 text-gray-400 hover:text-white transition;
+}
+
+.nav-item.active {
+  @apply text-white font-semibold;
+}
+
+/* Main */
+.main {
+  @apply flex-1 p-6 space-y-6;
+}
+
+/* Topbar */
+.topbar {
+  @apply flex justify-between items-center text-white;
+}
+
+.live-badge {
+  @apply px-3 py-1 text-xs bg-purple-500/20 text-purple-300 rounded-full;
+}
+
+/* Glass effect */
+.glass-card {
+  @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl;
+}
+
+/* Stats */
+.stats {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4;
+}
+
+.stat-card {
+  @apply p-4 relative overflow-hidden;
+}
+
+.stat-card h3 {
+  @apply text-2xl font-bold;
+}
+
+/* Charts */
+.charts {
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-4;
+}
+
+.chart-box {
+  @apply p-6 min-h-[300px];
+}
+
+/* Table */
+.table-card {
+  @apply p-6;
+}
+
+.table {
+  @apply w-full text-left mt-4;
+}
+
+.table th {
+  @apply text-gray-400 text-sm;
+}
+
+.table td {
+  @apply py-2;
+}
+
+.up {
+  @apply text-green-400 font-semibold;
 }
