@@ -1,178 +1,297 @@
-<!DOCTYPE html>
-<html lang="en" class="dark">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard - PriceFlow</title>
-  
-  <!-- Tailwind CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Our custom styles -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
-  
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-  
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: { extend: { colors: { primary: '#135bec' } } }
-    }
-  </script>
-</head>
-<body class="body">
-<div class="page">
-  <!-- Background blur -->
-  <div class="bg-blur">
-    <div class="blur top"></div>
-    <div class="blur bottom"></div>
-  </div>
+{% extends "base.html" %}
 
-  <div class="wrapper" style="max-width: 1200px;">
-    <!-- Header -->
-    <div class="header">
-      <div class="logo">
-        <span class="material-symbols-outlined text-3xl">dashboard</span>
-      </div>
-      <h1 class="title">Admin Dashboard</h1>
-      <p class="subtitle">PriceFlow System Overview</p>
-    </div>
+{% block title %}PriceFlow | Dashboard{% endblock %}
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-      <div class="card">
-        <div class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-2xl text-primary">inventory_2</span>
-          <div>
-            <p class="text-sm text-slate-500 dark:text-slate-400">Total Products</p>
-            <p class="text-2xl font-bold">{{ products|length }}</p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="card">
-        <div class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-2xl text-primary">trending_up</span>
-          <div>
-            <p class="text-sm text-slate-500 dark:text-slate-400">Demand Scores</p>
-            <p class="text-2xl font-bold">{{ latest_demand|length }}</p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="card">
-        <div class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-2xl text-primary">price_change</span>
-          <div>
-            <p class="text-sm text-slate-500 dark:text-slate-400">Price Changes</p>
-            <p class="text-2xl font-bold">{{ recent_changes|length }}</p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="card">
-        <div class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-2xl text-primary">person</span>
-          <div>
-            <p class="text-sm text-slate-500 dark:text-slate-400">Actions (24h)</p>
-            <p class="text-2xl font-bold">{{ total_actions }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
+{% block extra_head %}
+<style>
+  /* Dashboard-specific animations */
+  .animate-in { animation: slideUp 0.6s ease-out backwards; }
+</style>
+{% endblock %}
 
-    <!-- Action Buttons -->
-    <div class="card mb-8">
-      <h2 class="text-xl font-bold mb-4">Manual Triggers</h2>
-      <div class="flex flex-wrap gap-3">
-        <a href="{{ url_for('admin.trigger_simulation') }}" class="btn bg-slate-600 hover:bg-slate-700">
-          <span class="material-symbols-outlined">play_arrow</span>
-          Trigger Simulation
-        </a>
-        <a href="{{ url_for('admin.trigger_demand') }}" class="btn bg-slate-600 hover:bg-slate-700">
-          <span class="material-symbols-outlined">analytics</span>
-          Refresh Demand
-        </a>
-        <a href="{{ url_for('admin.trigger_pricing') }}" class="btn bg-slate-600 hover:bg-slate-700">
-          <span class="material-symbols-outlined">attach_money</span>
-          Update Prices
-        </a>
-        <a href="{{ url_for('admin.logout') }}" class="btn bg-red-600 hover:bg-red-700">
-          <span class="material-symbols-outlined">logout</span>
-          Logout
-        </a>
+{% block sidebar %}
+<aside class="w-64 h-screen fixed left-0 top-0 bg-background flex flex-col py-8 z-50">
+  <!-- Brand -->
+  <div class="px-6 mb-12">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+        <span class="material-symbols-outlined text-black text-xl">insights</span>
       </div>
-    </div>
-
-    <!-- Recent Price Changes -->
-    <div class="card">
-      <h2 class="text-xl font-bold mb-4">Recent Price Changes</h2>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b border-slate-200 dark:border-slate-800">
-              <th class="text-left py-3 px-2">Product</th>
-              <th class="text-left py-3 px-2">Old Price</th>
-              <th class="text-left py-3 px-2">New Price</th>
-              <th class="text-left py-3 px-2">Demand</th>
-              <th class="text-left py-3 px-2">Reason</th>
-              <th class="text-left py-3 px-2">Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for change in recent_changes %}
-            <tr class="border-b border-slate-100 dark:border-slate-800">
-              <td class="py-3 px-2">{{ change.product_id }}</td>
-              <td class="py-3 px-2">${{ change.old_price }}</td>
-              <td class="py-3 px-2 text-primary font-bold">${{ change.new_price }}</td>
-              <td class="py-3 px-2">{{ change.demand_score }}</td>
-              <td class="py-3 px-2">{{ change.change_reason }}</td>
-              <td class="py-3 px-2 text-slate-500">{{ change.timestamp.strftime('%H:%M:%S') }}</td>
-            </tr>
-            {% else %}
-            <tr>
-              <td colspan="6" class="py-4 text-center text-slate-500">No recent price changes</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Products Table -->
-    <div class="card mt-8">
-      <h2 class="text-xl font-bold mb-4">All Products</h2>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b border-slate-200 dark:border-slate-800">
-              <th class="text-left py-3 px-2">ID</th>
-              <th class="text-left py-3 px-2">Name</th>
-              <th class="text-left py-3 px-2">Base Price</th>
-              <th class="text-left py-3 px-2">Current Price</th>
-              <th class="text-left py-3 px-2">Stock</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for product in products %}
-            <tr class="border-b border-slate-100 dark:border-slate-800">
-              <td class="py-3 px-2">{{ product.product_id }}</td>
-              <td class="py-3 px-2">{{ product.name }}</td>
-              <td class="py-3 px-2">${{ product.base_price }}</td>
-              <td class="py-3 px-2 text-primary font-bold">${{ product.current_price }}</td>
-              <td class="py-3 px-2">{{ product.stock }}</td>
-            </tr>
-            {% else %}
-            <tr>
-              <td colspan="5" class="py-4 text-center text-slate-500">No products found</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      <div>
+        <h1 class="font-headline text-2xl font-black text-white tracking-tight">PriceFlow</h1>
+        <p class="text-[10px] font-bold tracking-[0.2em] uppercase opacity-60 text-primary">v2.4.0</p>
       </div>
     </div>
   </div>
+  
+  <!-- Navigation (Vertical Spine) -->
+  <nav class="flex-1 px-3 space-y-1">
+    <a href="#" class="flex items-center gap-3 px-4 py-3 text-white relative group">
+      <span class="w-1 h-1 absolute left-2 rounded-full bg-primary"></span>
+      <span class="material-symbols-outlined text-primary" data-weight="fill">dashboard</span>
+      <span class="font-medium">Dashboard</span>
+    </a>
+    
+    <a href="#" class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white transition-all opacity-70 hover:opacity-100">
+      <span class="material-symbols-outlined group-hover:text-primary">payments</span>
+      <span class="font-medium">Pricing</span>
+    </a>
+    
+    <a href="{{ url_for('admin.trigger_simulation') }}" class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white transition-all opacity-70 hover:opacity-100">
+      <span class="material-symbols-outlined group-hover:text-primary">play_arrow</span>
+      <span class="font-medium">Simulation</span>
+    </a>
+    
+    <a href="{{ url_for('admin.trigger_demand') }}" class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white transition-all opacity-70 hover:opacity-100">
+      <span class="material-symbols-outlined group-hover:text-primary">analytics</span>
+      <span class="font-medium">Demand</span>
+    </a>
+    
+    <a href="{{ url_for('admin.trigger_pricing') }}" class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white transition-all opacity-70 hover:opacity-100">
+      <span class="material-symbols-outlined group-hover:text-primary">attach_money</span>
+      <span class="font-medium">Pricing Engine</span>
+    </a>
+    
+    <div class="pt-8 mt-8 border-t border-white/5">
+      <a href="{{ url_for('admin.logout') }}" class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white transition-all opacity-70 hover:opacity-100">
+        <span class="material-symbols-outlined group-hover:text-primary">logout</span>
+        <span class="font-medium">Logout</span>
+      </a>
+    </div>
+  </nav>
+</aside>
+{% endblock %}
+
+{% block header %}
+<header class="sticky top-0 z-40 w-full bg-background/80 backdrop-blur-xl border-b border-white/5 flex justify-between items-center px-8 h-20 font-headline font-medium">
+  <div class="flex items-center gap-6 flex-1">
+    <h2 class="text-xl font-bold text-white tracking-tight">System Overview</h2>
+  </div>
+  <div class="flex items-center gap-6">
+    <!-- Live Data Badge (Intelligence Chip) -->
+    <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container text-[10px] font-bold tracking-widest uppercase text-tertiary">
+      <span class="relative flex h-2 w-2">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary"></span>
+      </span>
+      Live Data
+    </div>
+  </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<!-- Staggered Animation Container -->
+<div class="space-y-8 stagger-children">
+  
+  <!-- Bento Stats Grid -->
+  <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    
+    <!-- Card 1: Total Products -->
+    <div class="glass rounded-xl p-6 relative overflow-hidden group animate-in">
+      <div class="kinetic-gradient absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      <div class="relative z-10">
+        <p class="text-on-surface-variant text-xs font-bold uppercase tracking-widest mb-2">Total Products</p>
+        <div class="flex items-baseline gap-2">
+          <h3 class="text-4xl font-black font-headline text-white">{{ products|length }}</h3>
+          <span class="text-xs text-primary font-medium">active</span>
+        </div>
+      </div>
+      <span class="material-symbols-outlined absolute -bottom-2 -right-2 text-7xl text-white/5 rotate-12">inventory_2</span>
+    </div>
+    
+    <!-- Card 2: Demand Scores -->
+    <div class="glass rounded-xl p-6 relative overflow-hidden group animate-in">
+      <div class="kinetic-gradient absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      <div class="relative z-10">
+        <p class="text-on-surface-variant text-xs font-bold uppercase tracking-widest mb-2">Demand Scores</p>
+        <div class="flex items-baseline gap-2">
+          <h3 class="text-4xl font-black font-headline text-white">{{ latest_demand|length }}</h3>
+          <span class="text-xs text-primary font-medium">calculated</span>
+        </div>
+      </div>
+      <span class="material-symbols-outlined absolute -bottom-2 -right-2 text-7xl text-white/5 rotate-12">query_stats</span>
+    </div>
+    
+    <!-- Card 3: Price Changes -->
+    <div class="glass rounded-xl p-6 relative overflow-hidden group animate-in">
+      <div class="kinetic-gradient absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      <div class="relative z-10">
+        <p class="text-on-surface-variant text-xs font-bold uppercase tracking-widest mb-2">Price Changes</p>
+        <div class="flex items-baseline gap-2">
+          <h3 class="text-4xl font-black font-headline text-white">{{ recent_changes|length }}</h3>
+          <span class="text-xs text-primary font-medium">today</span>
+        </div>
+      </div>
+      <span class="material-symbols-outlined absolute -bottom-2 -right-2 text-7xl text-white/5 rotate-12">trending_up</span>
+    </div>
+    
+    <!-- Card 4: Actions -->
+    <div class="glass rounded-xl p-6 relative overflow-hidden group animate-in">
+      <div class="kinetic-gradient absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      <div class="relative z-10">
+        <p class="text-on-surface-variant text-xs font-bold uppercase tracking-widest mb-2">User Actions (24h)</p>
+        <div class="flex items-baseline gap-2">
+          <h3 class="text-4xl font-black font-headline text-white">{{ total_actions }}</h3>
+          <span class="text-xs text-primary font-medium">events</span>
+        </div>
+      </div>
+      <span class="material-symbols-outlined absolute -bottom-2 -right-2 text-7xl text-white/5 rotate-12">group</span>
+    </div>
+  </section>
+  
+  <!-- Charts Section -->
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Price Chart -->
+    <div class="glass rounded-2xl p-8 min-h-[400px] flex flex-col animate-in">
+      <div class="flex justify-between items-start mb-8">
+        <div>
+          <h4 class="font-headline text-xl font-bold text-white mb-1">Price vs Time</h4>
+          <p class="text-on-surface-variant text-sm">Real-time aggregate market fluctuations</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="px-3 py-1 rounded bg-surface-container-highest text-xs text-on-surface hover:bg-surface-bright transition">1H</button>
+          <button class="px-3 py-1 rounded bg-primary text-black text-xs font-bold">24H</button>
+          <button class="px-3 py-1 rounded bg-surface-container-highest text-xs text-on-surface hover:bg-surface-bright transition">7D</button>
+        </div>
+      </div>
+      
+      <!-- Chart Visualization -->
+      <div class="flex-1 flex items-end justify-between px-4">
+        <div class="w-3 bg-primary/20 rounded-t h-[40%]"></div>
+        <div class="w-3 bg-primary/20 rounded-t h-[60%]"></div>
+        <div class="w-3 bg-primary/20 rounded-t h-[45%]"></div>
+        <div class="w-3 bg-primary/20 rounded-t h-[80%]"></div>
+        <div class="w-3 bg-primary rounded-t h-[90%] shadow-[0_0_15px_rgba(163,166,255,0.4)]"></div>
+        <div class="w-3 bg-primary/20 rounded-t h-[70%]"></div>
+        <div class="w-3 bg-primary/20 rounded-t h-[55%]"></div>
+        <div class="w-3 bg-primary/20 rounded-t h-[65%]"></div>
+        <div class="w-3 bg-primary/20 rounded-t h-[40%]"></div>
+        <div class="w-3 bg-primary/20 rounded-t h-[50%]"></div>
+        <div class="w-3 bg-primary/20 rounded-t h-[85%]"></div>
+      </div>
+    </div>
+    
+    <!-- Demand Score Chart -->
+    <div class="glass rounded-2xl p-8 min-h-[400px] flex flex-col animate-in">
+      <div class="flex justify-between items-start mb-8">
+        <div>
+          <h4 class="font-headline text-xl font-bold text-white mb-1">Demand Score vs Time</h4>
+          <p class="text-on-surface-variant text-sm">Predictive purchase intent modeling</p>
+        </div>
+        <span class="material-symbols-outlined text-primary text-2xl">auto_graph</span>
+      </div>
+      
+      <!-- Bar Chart -->
+      <div class="flex-1 grid grid-cols-7 gap-4 items-end">
+        <div class="text-center">
+          <div class="h-32 w-full bg-secondary/10 rounded-lg relative overflow-hidden mb-2">
+            <div class="absolute bottom-0 w-full h-[60%] bg-secondary rounded-lg"></div>
+          </div>
+          <span class="text-[10px] uppercase font-bold text-outline">Mon</span>
+        </div>
+        <div class="text-center">
+          <div class="h-32 w-full bg-secondary/10 rounded-lg relative overflow-hidden mb-2">
+            <div class="absolute bottom-0 w-full h-[85%] bg-secondary rounded-lg"></div>
+          </div>
+          <span class="text-[10px] uppercase font-bold text-outline">Tue</span>
+        </div>
+        <div class="text-center">
+          <div class="h-32 w-full bg-secondary/10 rounded-lg relative overflow-hidden mb-2">
+            <div class="absolute bottom-0 w-full h-[40%] bg-secondary rounded-lg"></div>
+          </div>
+          <span class="text-[10px] uppercase font-bold text-outline">Wed</span>
+        </div>
+        <div class="text-center">
+          <div class="h-32 w-full bg-secondary/10 rounded-lg relative overflow-hidden mb-2">
+            <div class="absolute bottom-0 w-full h-[95%] bg-secondary rounded-lg shadow-[0_0_20px_rgba(162,142,252,0.3)]"></div>
+          </div>
+          <span class="text-[10px] uppercase font-bold text-primary">Thu</span>
+        </div>
+        <div class="text-center">
+          <div class="h-32 w-full bg-secondary/10 rounded-lg relative overflow-hidden mb-2">
+            <div class="absolute bottom-0 w-full h-[70%] bg-secondary rounded-lg"></div>
+          </div>
+          <span class="text-[10px] uppercase font-bold text-outline">Fri</span>
+        </div>
+        <div class="text-center">
+          <div class="h-32 w-full bg-secondary/10 rounded-lg relative overflow-hidden mb-2">
+            <div class="absolute bottom-0 w-full h-[30%] bg-secondary rounded-lg"></div>
+          </div>
+          <span class="text-[10px] uppercase font-bold text-outline">Sat</span>
+        </div>
+        <div class="text-center">
+          <div class="h-32 w-full bg-secondary/10 rounded-lg relative overflow-hidden mb-2">
+            <div class="absolute bottom-0 w-full h-[50%] bg-secondary rounded-lg"></div>
+          </div>
+          <span class="text-[10px] uppercase font-bold text-outline">Sun</span>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Adjustments Table -->
+  <section class="glass rounded-2xl overflow-hidden animate-in">
+    <div class="p-8 border-b border-white/5 flex justify-between items-center">
+      <h4 class="font-headline text-xl font-bold text-white">Recent Dynamic Adjustments</h4>
+      <a href="#" class="text-primary text-sm font-bold flex items-center gap-2 hover:underline">
+        View Audit Log
+        <span class="material-symbols-outlined text-sm">open_in_new</span>
+      </a>
+    </div>
+    
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="text-outline text-[10px] uppercase tracking-widest border-b border-white/5">
+            <th class="px-8 py-4 font-bold">Product</th>
+            <th class="px-8 py-4 font-bold">Old Price</th>
+            <th class="px-8 py-4 font-bold">New Price</th>
+            <th class="px-8 py-4 font-bold">Delta</th>
+            <th class="px-8 py-4 font-bold">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+          {% for change in recent_changes %}
+          <tr class="hover:bg-white/5 transition-colors group">
+            <td class="px-8 py-5">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded bg-surface-container-highest flex items-center justify-center">
+                  <span class="material-symbols-outlined text-primary">inventory_2</span>
+                </div>
+                <span class="text-white font-medium">Product #{{ change.product_id }}</span>
+              </div>
+            </td>
+            <td class="px-8 py-5 text-on-surface-variant">${{ change.old_price }}</td>
+            <td class="px-8 py-5 text-white font-bold">${{ change.new_price }}</td>
+            <td class="px-8 py-5">
+              {% set delta = ((change.new_price - change.old_price) / change.old_price * 100) %}
+              <span class="{% if delta > 0 %}text-tertiary{% else %}text-error-dim{% endif %} font-bold">
+                {% if delta > 0 %}+{% endif %}{{ "%.2f"|format(delta) }}%
+              </span>
+            </td>
+            <td class="px-8 py-5">
+              <!-- Intelligence Chips -->
+              <div class="flex items-center gap-2 {% if delta > 0 %}text-tertiary{% else %}text-error-dim{% endif %}">
+                <span class="material-symbols-outlined text-xl">
+                  {% if delta > 0 %}trending_up{% else %}trending_down{% endif %}
+                </span>
+                <span class="text-xs font-bold uppercase tracking-tight">
+                  {% if delta > 0 %}Rising Demand{% else %}Stock Surplus{% endif %}
+                </span>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" class="px-8 py-12 text-center text-on-surface-variant">
+              No recent price changes
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
 </div>
-</body>
-</html>
+{% endblock %}

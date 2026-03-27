@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}PriceFlow{% endblock %}</title>
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind + Custom Styles -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+  
+  <!-- Design System Config -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            // Surface Hierarchy (No-Line Rule)
+            background: '#060e20',
+            surface: '#060e20',
+            'surface-container-lowest': '#091328',
+            'surface-container-low': '#0f1930',
+            'surface-container': '#0f1930',
+            'surface-container-high': '#141f38',
+            'surface-container-highest': '#192540',
+            'surface-bright': '#1f2b49',
+            
+            // Primary (Indigo/Violet Spectrum)
+            primary: '#a3a6ff',
+            'primary-dim': '#6063ee',
+            'primary-fixed': '#9396ff',
+            'primary-fixed-dim': '#8387ff',
+            
+            // Secondary
+            secondary: '#a28efc',
+            'secondary-fixed': '#d6cbff',
+            'secondary-dim': '#a28efc',
+            
+            // Tertiary
+            tertiary: '#ffa5d9',
+            'tertiary-fixed': '#ff8ed2',
+            'tertiary-dim': '#ef81c4',
+            
+            // Error
+            error: '#ff6e84',
+            'error-dim': '#d73357',
+            
+            // Text Colors
+            'on-surface': '#dee5ff',
+            'on-surface-variant': '#a3aac4',
+            'on-primary': '#0f00a4',
+            'on-primary-fixed': '#000000',
+            'on-primary-fixed-variant': '#0e009d',
+            'on-secondary': '#21006d',
+            'on-tertiary': '#701455',
+            
+            // Other
+            outline: '#6d758c',
+            'outline-variant': '#40485d',
+          },
+          fontFamily: {
+            headline: ['Manrope', 'sans-serif'],
+            body: ['Inter', 'sans-serif'],
+            label: ['Inter', 'sans-serif'],
+          },
+          borderRadius: {
+            'none': '0',
+            'sm': '0.25rem',
+            'DEFAULT': '0.5rem',
+            'md': '0.75rem',
+            'lg': '1rem',
+            'xl': '1.5rem',
+            '2xl': '2rem',
+            'full': '9999px',
+          },
+          backdropBlur: {
+            'xs': '2px',
+          },
+          spacing: {
+            '18': '4.5rem',
+            '22': '5.5rem',
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.5s ease-out',
+            'slide-up': 'slideUp 0.5s ease-out',
+            'slide-in-left': 'slideInLeft 0.3s ease-out',
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { opacity: '0', transform: 'translateY(20px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            slideInLeft: {
+              '0%': { opacity: '0', transform: 'translateX(-20px)' },
+              '100%': { opacity: '1', transform: 'translateX(0)' },
+            },
+          },
+        },
+      },
+    }
+  </script>
+  
+  <!-- Base Styles -->
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .font-headline {
+      font-family: 'Manrope', sans-serif;
+    }
+    
+    /* Glass Effect */
+    .glass {
+      background: rgba(15, 25, 48, 0.6);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(163, 166, 255, 0.1);
+    }
+    
+    /* Glass High Priority */
+    .glass-priority {
+      background: rgba(25, 37, 64, 0.6);
+      backdrop-filter: blur(20px);
+      background: linear-gradient(135deg, rgba(163, 166, 255, 0.12) 0%, rgba(162, 142, 252, 0.12) 100%);
+      border: 1px solid rgba(163, 166, 255, 0.15);
+    }
+    
+    /* No-Line: Ghost Border Fallback */
+    .ghost-border {
+      border: 1px solid rgba(64, 72, 93, 0.15);
+    }
+    
+    /* Kinetic Gradient */
+    .kinetic-gradient {
+      background: linear-gradient(135deg, rgba(163, 166, 255, 0.12) 0%, rgba(162, 142, 252, 0.12) 100%);
+    }
+    
+    /* Live Pulse */
+    .live-pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    /* Stagger animations for children */
+    .stagger-children > * {
+      animation: slideUp 0.5s ease-out backwards;
+    }
+    .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+    .stagger-children > *:nth-child(2) { animation-delay: 100ms; }
+    .stagger-children > *:nth-child(3) { animation-delay: 200ms; }
+    .stagger-children > *:nth-child(4) { animation-delay: 300ms; }
+    .stagger-children > *:nth-child(5) { animation-delay: 400ms; }
+    .stagger-children > *:nth-child(6) { animation-delay: 500ms; }
+  </style>
+  
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-background text-on-surface antialiased overflow-x-hidden">
+  {% block body %}
+    <!-- Main Layout -->
+    <div class="min-h-screen flex">
+      {% block sidebar %}{% endblock %}
+      
+      <main class="flex-1">
+        {% block header %}{% endblock %}
+        
+        <div class="p-8">
+          {% block content %}{% endblock %}
+        </div>
+      </main>
+    </div>
+  {% endblock %}
+  
+  {% block scripts %}{% endblock %}
+</body>
+</html>
