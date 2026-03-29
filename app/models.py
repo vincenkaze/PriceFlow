@@ -28,7 +28,9 @@ class Product(db.Model):
     stock = db.Column(db.Integer, nullable=False)
     min_price = db.Column(db.Float(precision=2))
     max_price = db.Column(db.Float(precision=2))
+    image_url = db.Column(db.String(500), default='')
     last_updated = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class User(db.Model):
     __tablename__ = 'users'

@@ -1,8 +1,6 @@
 import os
 from flask import Blueprint, render_template, redirect, url_for, request, session, flash, current_app
-from app.models import Product, DemandScore, PriceHistory, UserAction
-from datetime import datetime, timedelta
-from app.extensions import db
+from datetime import datetime
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -39,36 +37,9 @@ def logout():
 def dashboard():
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin.login'))
-
-    # Get all products with latest data
-    products = Product.query.all()
-
-    # Get latest demand scores
-    latest_demand = (
-        DemandScore.query
-        .order_by(DemandScore.calculated_at.desc())
-        .limit(50)
-        .all()
-    )
-
-    # Get recent price changes
-    recent_changes = (
-        PriceHistory.query
-        .order_by(PriceHistory.timestamp.desc())
-        .limit(20)
-        .all()
-    )
-
-    # Total actions today (for stats)
-    today_actions = UserAction.query.filter(
-        UserAction.timestamp >= datetime.utcnow() - timedelta(days=1)
-    ).count()
-
-    return render_template('admin/dashboard.html',
-                           products=products,
-                           latest_demand=latest_demand,
-                           recent_changes=recent_changes,
-                           total_actions=today_actions)
+    
+    # Dashboard data is now fetched via API for real-time updates
+    return render_template('admin/dashboard.html')
 
 
 @admin_bp.route('/trigger-simulation')
@@ -115,3 +86,12 @@ def trigger_pricing():
     except Exception as e:
         flash(f"Error updating prices: {e}", "danger")
     return redirect(url_for('admin.dashboard'))
+
+
+@admin_bp.route('/products')
+def products():
+    """Product management page with edit capabilities"""
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin.login'))
+    
+    return render_template('admin/products.html')

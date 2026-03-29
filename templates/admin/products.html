@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+
+{% block title %}PriceFlow | Product Management{% endblock %}
+
+{% block sidebar %}
+<aside class="h-screen w-64 left-0 top-0 overflow-y-auto bg-[#060e20] border-r border-white/5 shadow-2xl shadow-black/50 z-50 flex flex-col py-8 font-['Manrope'] antialiased tracking-tight">
+  <div class="px-6 mb-12">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+        <span class="material-symbols-outlined text-on-primary text-xl">insights</span>
+      </div>
+      <div>
+        <h1 class="text-2xl font-black text-white tracking-tighter">PriceFlow</h1>
+        <p class="text-[10px] text-primary font-bold tracking-[0.2em] uppercase opacity-60">v2.4.0</p>
+      </div>
+    </div>
+  </div>
+  
+  <nav class="flex-1 space-y-1">
+    <a class="flex items-center gap-3 px-6 py-3 text-slate-400 opacity-70 hover:opacity-100 transition-all hover:bg-[#1f2b49]/30 hover:text-white group" href="{{ url_for('admin.dashboard') }}">
+      <span class="material-symbols-outlined group-hover:text-[#6366f1]">dashboard</span>
+      <span class="font-medium">Dashboard</span>
+    </a>
+    <a class="flex items-center gap-3 px-6 py-3 text-white relative after:content-[''] after:absolute after:left-0 after:h-4 after:w-1 after:bg-[#6366f1] after:rounded-r-full group" href="{{ url_for('admin.products') }}">
+      <span class="material-symbols-outlined text-[#6366f1]">inventory</span>
+      <span class="font-medium">Products</span>
+    </a>
+    
+    <div class="pt-8 mt-8 border-t border-white/5">
+      <a href="{{ url_for('admin.logout') }}" class="flex items-center gap-3 px-6 py-3 text-slate-400 opacity-70 hover:opacity-100 transition-all hover:bg-[#1f2b49]/30 hover:text-white group">
+        <span class="material-symbols-outlined group-hover:text-[#6366f1]">logout</span>
+        <span class="font-medium">Logout</span>
+      </a>
+    </div>
+  </nav>
+</aside>
+{% endblock %}
+
+{% block header %}
+<header class="sticky top-0 z-40 w-full bg-[#060e20]/80 backdrop-blur-xl border-b border-white/5 flex justify-between items-center px-8 h-20 font-['Manrope'] font-medium">
+  <div class="flex items-center gap-6 flex-1">
+    <h2 class="text-xl font-bold text-white tracking-tight">Product Management</h2>
+  </div>
+  <div class="flex items-center gap-6">
+    <button onclick="loadProducts()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-highest hover:bg-surface-bright transition text-primary text-sm font-medium">
+      <span class="material-symbols-outlined text-sm" id="refresh-icon">refresh</span>
+      Refresh
+    </button>
+  </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="p-8 space-y-6">
+  
+  <!-- Header with stats -->
+  <div class="flex justify-between items-center">
+    <div>
+      <h3 class="text-3xl font-black text-white">All Products</h3>
+      <p class="text-slate-400 mt-1">Manage inventory, prices, and images</p>
+    </div>
+    <div class="flex items-center gap-4">
+      <span class="text-sm text-slate-400"><span id="product-count" class="text-white font-bold">0</span> products</span>
+    </div>
+  </div>
+
+  <!-- Product Table -->
+  <div class="glass-card rounded-xl overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-surface-container border-b border-white/5">
+          <tr>
+            <th class="px-6 py-4 text-left text-xs font-bold text-on-surface-variant uppercase tracking-wider">Image</th>
+            <th class="px-6 py-4 text-left text-xs font-bold text-on-surface-variant uppercase tracking-wider">Product Name</th>
+            <th class="px-6 py-4 text-left text-xs font-bold text-on-surface-variant uppercase tracking-wider">Stock</th>
+            <th class="px-6 py-4 text-left text-xs font-bold text-on-surface-variant uppercase tracking-wider">Current Price</th>
+            <th class="px-6 py-4 text-left text-xs font-bold text-on-surface-variant uppercase tracking-wider">Base Price</th>
+            <th class="px-6 py-4 text-left text-xs font-bold text-on-surface-variant uppercase tracking-wider">Min/Max</th>
+            <th class="px-6 py-4 text-center text-xs font-bold text-on-surface-variant uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="products-table-body" class="divide-y divide-white/5">
+          <tr>
+            <td colspan="7" class="px-6 py-12 text-center text-slate-400">
+              <span class="material-symbols-outlined text-4xl animate-spin">progress_activity</span>
+              <p class="mt-2">Loading products...</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div id="edit-modal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal()"></div>
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg glass-card rounded-2xl p-8">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-xl font-bold text-white">Edit Product</h3>
+      <button onclick="closeModal()" class="text-slate-400 hover:text-white transition">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    
+    <form id="edit-form" class="space-y-5">
+      <input type="hidden" id="edit-product-id">
+      
+      <!-- Product Name -->
+      <div>
+        <label class="block text-sm font-medium text-on-surface-variant mb-2">Product Name</label>
+        <input type="text" id="edit-name" required 
+               class="w-full px-4 py-3 rounded-xl bg-surface-container-highest border border-white/10 text-white focus:border-primary focus:ring-1 focus:ring-primary transition">
+      </div>
+      
+      <!-- Stock -->
+      <div>
+        <label class="block text-sm font-medium text-on-surface-variant mb-2">Stock Quantity</label>
+        <input type="number" id="edit-stock" min="0" required 
+               class="w-full px-4 py-3 rounded-xl bg-surface-container-highest border border-white/10 text-white focus:border-primary focus:ring-1 focus:ring-primary transition">
+      </div>
+      
+      <!-- Prices Row -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-on-surface-variant mb-2">Current Price ($)</label>
+          <input type="number" id="edit-current-price" step="0.01" min="0" required 
+                 class="w-full px-4 py-3 rounded-xl bg-surface-container-highest border border-white/10 text-white focus:border-primary focus:ring-1 focus:ring-primary transition">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-on-surface-variant mb-2">Base Price ($)</label>
+          <input type="number" id="edit-base-price" step="0.01" min="0" required 
+                 class="w-full px-4 py-3 rounded-xl bg-surface-container-highest border border-white/10 text-white focus:border-primary focus:ring-1 focus:ring-primary transition">
+        </div>
+      </div>
+      
+      <!-- Min/Max Prices Row -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-on-surface-variant mb-2">Min Price ($)</label>
+          <input type="number" id="edit-min-price" step="0.01" min="0" required 
+                 class="w-full px-4 py-3 rounded-xl bg-surface-container-highest border border-white/10 text-white focus:border-primary focus:ring-1 focus:ring-primary transition">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-on-surface-variant mb-2">Max Price ($)</label>
+          <input type="number" id="edit-max-price" step="0.01" min="0" required 
+                 class="w-full px-4 py-3 rounded-xl bg-surface-container-highest border border-white/10 text-white focus:border-primary focus:ring-1 focus:ring-primary transition">
+        </div>
+      </div>
+      
+      <!-- Image URL -->
+      <div>
+        <label class="block text-sm font-medium text-on-surface-variant mb-2">Image URL</label>
+        <input type="url" id="edit-image-url" 
+               class="w-full px-4 py-3 rounded-xl bg-surface-container-highest border border-white/10 text-white focus:border-primary focus:ring-1 focus:ring-primary transition">
+        <p class="text-xs text-slate-500 mt-1">Use Unsplash URLs like: https://images.unsplash.com/photo-xxx?w=400</p>
+      </div>
+      
+      <!-- Actions -->
+      <div class="flex gap-4 pt-4">
+        <button type="button" onclick="closeModal()" 
+                class="flex-1 px-6 py-3 rounded-xl bg-surface-container-highest hover:bg-surface-bright text-white font-medium transition">
+          Cancel
+        </button>
+        <button type="submit" 
+                class="flex-1 px-6 py-3 rounded-xl bg-primary hover:bg-primary-dark text-white font-medium transition">
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// Global state
+let products = [];
+
+// Load products on page load
+document.addEventListener('DOMContentLoaded', loadProducts);
+
+// Load all products from API
+async function loadProducts() {
+  const icon = document.getElementById('refresh-icon');
+  icon.textContent = 'progress_activity';
+  icon.classList.add('animate-spin');
+  
+  try {
+    const response = await fetch('/api/admin/products');
+    if (!response.ok) throw new Error('Failed to load products');
+    
+    products = await response.json();
+    renderProducts();
+    document.getElementById('product-count').textContent = products.length;
+  } catch (error) {
+    console.error('Error loading products:', error);
+    showNotification('Failed to load products', 'error');
+  } finally {
+    icon.textContent = 'refresh';
+    icon.classList.remove('animate-spin');
+  }
+}
+
+// Render products table
+function renderProducts() {
+  const tbody = document.getElementById('products-table-body');
+  
+  if (products.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="px-6 py-12 text-center text-slate-400">
+          <span class="material-symbols-outlined text-4xl">inventory_2</span>
+          <p class="mt-2">No products found</p>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+  
+  tbody.innerHTML = products.map(product => `
+    <tr class="hover:bg-white/5 transition">
+      <td class="px-6 py-4">
+        ${product.image_url ? 
+          `<img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.name)}" 
+                class="w-12 h-12 rounded-lg object-cover bg-surface-container">` :
+          `<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-slate-400 font-bold">
+             ${product.name.charAt(0)}
+           </div>`
+        }
+      </td>
+      <td class="px-6 py-4">
+        <div class="font-medium text-white">${escapeHtml(product.name)}</div>
+      </td>
+      <td class="px-6 py-4">
+        <span class="px-3 py-1 rounded-full text-sm font-medium ${
+          product.stock > 50 ? 'bg-green-500/20 text-green-400' :
+          product.stock > 20 ? 'bg-yellow-500/20 text-yellow-400' :
+          'bg-red-500/20 text-red-400'
+        }">
+          ${product.stock} units
+        </span>
+      </td>
+      <td class="px-6 py-4">
+        <span class="font-bold text-primary">$${product.current_price.toFixed(2)}</span>
+      </td>
+      <td class="px-6 py-4">
+        <span class="text-slate-400">$${product.base_price.toFixed(2)}</span>
+      </td>
+      <td class="px-6 py-4">
+        <div class="text-sm text-slate-400">$${product.min_price.toFixed(2)} - $${product.max_price.toFixed(2)}</div>
+      </td>
+      <td class="px-6 py-4 text-center">
+        <button onclick="openModal(${product.id})" 
+                class="px-4 py-2 rounded-lg bg-surface-container-highest hover:bg-primary hover:text-white text-slate-400 transition">
+          <span class="material-symbols-outlined text-lg">edit</span>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// Open edit modal
+function openModal(productId) {
+  const product = products.find(p => p.id === productId);
+  if (!product) return;
+  
+  document.getElementById('edit-product-id').value = product.id;
+  document.getElementById('edit-name').value = product.name;
+  document.getElementById('edit-stock').value = product.stock;
+  document.getElementById('edit-current-price').value = product.current_price;
+  document.getElementById('edit-base-price').value = product.base_price;
+  document.getElementById('edit-min-price').value = product.min_price;
+  document.getElementById('edit-max-price').value = product.max_price;
+  document.getElementById('edit-image-url').value = product.image_url || '';
+  
+  document.getElementById('edit-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+// Close modal
+function closeModal() {
+  document.getElementById('edit-modal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+// Handle form submission
+document.getElementById('edit-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const productId = document.getElementById('edit-product-id').value;
+  const data = {
+    name: document.getElementById('edit-name').value,
+    stock: parseInt(document.getElementById('edit-stock').value),
+    current_price: parseFloat(document.getElementById('edit-current-price').value),
+    base_price: parseFloat(document.getElementById('edit-base-price').value),
+    min_price: parseFloat(document.getElementById('edit-min-price').value),
+    max_price: parseFloat(document.getElementById('edit-max-price').value),
+    image_url: document.getElementById('edit-image-url').value || ''
+  };
+  
+  try {
+    const response = await fetch(`/api/admin/products/${productId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    
+    if (!response.ok) throw new Error('Failed to update product');
+    
+    const result = await response.json();
+    showNotification('Product updated successfully!', 'success');
+    closeModal();
+    loadProducts();
+  } catch (error) {
+    console.error('Error updating product:', error);
+    showNotification('Failed to update product', 'error');
+  }
+});
+
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Show notification toast
+function showNotification(message, type = 'info') {
+  const colors = {
+    success: 'bg-green-500',
+    error: 'bg-red-500',
+    info: 'bg-blue-500'
+  };
+  
+  const toast = document.createElement('div');
+  toast.className = `fixed bottom-6 right-6 px-6 py-3 rounded-xl ${colors[type]} text-white font-medium shadow-lg z-50 animate-slide-up`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+});
+</script>
+
+<style>
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+</style>
+{% endblock %}

@@ -2,13 +2,92 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== HOMEPAGE STYLES ===== */
+
+/* Base body styles */
+.body {
+  @apply font-[Inter] bg-[#0a0c10] text-white antialiased;
+}
+
+/* Glass navigation */
+.glass-nav {
+  background: rgba(10, 12, 16, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Hero gradient */
+.hero-gradient {
+  background: radial-gradient(circle at 50% 50%, rgba(19, 91, 236, 0.1) 0%, rgba(10, 12, 16, 0) 70%);
+}
+
+/* Product card animations */
+.product-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.5), 0 0 20px 1px rgba(19, 91, 236, 0.05);
+}
+
+.product-card:hover img {
+  transform: scale(1.05);
+}
+
+/* Status label animation */
+.status-label {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.product-card:hover .status-label {
+  transform: scale(1.1);
+}
+
+/* Section fade-in animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-section {
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+/* Button hover smoothing */
+button, a {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Filter transitions */
+.product-card.hidden {
+  display: none !important;
+}
+
+/* Custom colors */
+.bg-darkBg { background-color: #0a0c10; }
+.bg-cardBg { background-color: #11141b; }
+.text-brand { color: #135bec; }
+.bg-brand { background-color: #135bec; }
+.border-brand { border-color: #135bec; }
+.text-textMuted { color: #94a3b8; }
+.rounded-custom { border-radius: 8px; }
+
+/* Card backgrounds */
+.card-bg { background-color: #11141b; }
+
+/* Navbar height */
+.nav-height { height: 5rem; }
+
 /* ===== LOGIN STYLES ===== */
 
 /* Layout */
-.body {
-  @apply font-[Inter] bg-slate-100 dark:bg-[#101622] text-slate-900 dark:text-white;
-}
-
 .page {
   @apply relative min-h-screen flex items-center justify-center p-4 overflow-hidden;
 }
@@ -99,697 +178,31 @@
 
 /* Button */
 .btn {
-  @apply w-full h-12 bg-primary text-white font-bold rounded-lg 
-         hover:bg-blue-700 transition;
+  @apply w-full h-12 rounded-lg font-semibold text-sm 
+         transition-all duration-200 cursor-pointer;
 }
 
-/* Footer */
-.footer {
-  @apply mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 
-         flex justify-center items-center gap-4 text-xs;
+.btn-primary {
+  @apply bg-primary text-white hover:bg-blue-700 active:scale-[0.98];
 }
 
-.footer a {
-  @apply flex items-center gap-1 text-slate-500 hover:text-primary;
+.btn-outline {
+  @apply border border-slate-200 dark:border-slate-700 
+         hover:bg-slate-50 dark:hover:bg-slate-800;
 }
 
-.dot {
-  @apply w-1 h-1 bg-slate-300 rounded-full;
+/* Checkbox */
+.checkbox {
+  @apply h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary;
 }
 
-/* Security */
-.security {
-  @apply mt-6 flex items-center justify-center gap-2 text-slate-400 text-xs;
+/* Alert */
+.alert {
+  @apply bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 
+         text-red-600 dark:text-red-400 rounded-lg p-3 text-sm;
 }
 
-/* Chat button */
-.chat {
-  @apply fixed bottom-6 right-6 w-12 h-12 flex items-center justify-center 
-         rounded-full bg-slate-800 text-white shadow-lg 
-         hover:scale-110 transition;
+/* Loading spinner */
+.spinner {
+  @apply w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin;
 }
-
-/* =========================
-   DASHBOARD STYLES
-========================= */
-
-/* Layout */
-.dashboard {
-  @apply flex min-h-screen bg-[#060e20] text-white;
-}
-
-/* Sidebar */
-.sidebar {
-  @apply w-64 p-6 border-r border-white/10 bg-[#060e20];
-}
-
-.logo-box {
-  @apply flex items-center gap-2 mb-10 text-white font-bold text-xl;
-}
-
-.nav-item {
-  @apply block py-2 text-gray-400 hover:text-white transition;
-}
-
-.nav-item.active {
-  @apply text-white font-semibold;
-}
-
-/* Main */
-.main {
-  @apply flex-1 p-6 space-y-6;
-}
-
-/* Topbar */
-.topbar {
-  @apply flex justify-between items-center text-white;
-}
-
-.live-badge {
-  @apply px-3 py-1 text-xs bg-purple-500/20 text-purple-300 rounded-full;
-}
-
-/* Glass effect */
-.glass-card {
-  @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl;
-}
-
-/* Stats */
-.stats {
-  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4;
-}
-
-.stat-card {
-  @apply p-4 relative overflow-hidden;
-}
-
-.stat-card h3 {
-  @apply text-2xl font-bold;
-}
-
-/* Charts */
-.charts {
-  @apply grid grid-cols-1 lg:grid-cols-2 gap-4;
-}
-
-.chart-box {
-  @apply p-6 min-h-[300px];
-}
-
-/* Table */
-.table-card {
-  @apply p-6;
-}
-
-.table {
-  @apply w-full text-left mt-4;
-}
-
-.table th {
-  @apply text-gray-400 text-sm;
-}
-
-.table td {
-  @apply py-2;
-}
-
-.up {
-  @apply text-green-400 font-semibold;
-}
-
-/* =========================
-   NEW DASHBOARD DESIGN v2
-   (Glass UI + Custom Colors)
-========================= */
-
-/* Custom color palette */
-:root {
-  --bg-dark: #060e20;
-  --surface-lowest: #091328;
-  --surface-container: #0f1930;
-  --surface-container-high: #141f38;
-  --surface-container-highest: #192540;
-  --surface-bright: #1f2b49;
-  --primary: #a3a6ff;
-  --primary-dim: #6063ee;
-  --secondary: #a28efc;
-  --tertiary: #ffa5d9;
-  --error: #ff6e84;
-  --on-surface: #dee5ff;
-  --on-surface-variant: #a3aac4;
-  --outline: #6d758c;
-}
-
-/* Dark body for dashboard */
-.dashboard-body {
-  @apply bg-[#060e20] text-[#dee5ff] antialiased overflow-x-hidden;
-  font-family: 'Inter', sans-serif;
-}
-
-
-/* ===== SIDEBAR ===== */
-.dashboard-sidebar {
-  @apply h-screen w-64 fixed left-0 top-0 overflow-y-auto;
-  background-color: #060e20;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  z-index: 50;
-  font-family: 'Manrope', sans-serif;
-}
-
-.sidebar-brand {
-  @apply px-6 mb-12;
-}
-
-.sidebar-logo {
-  @apply flex items-center gap-3;
-}
-
-.sidebar-logo-icon {
-  @apply w-8 h-8 rounded-lg flex items-center justify-center;
-  background-color: #a3a6ff;
-}
-
-.sidebar-logo-icon .material-symbols-outlined {
-  @apply text-black text-xl;
-}
-
-.sidebar-title {
-  @apply text-2xl font-black text-white tracking-tighter;
-}
-
-.sidebar-version {
-  @apply text-[10px] font-bold tracking-[0.2em] uppercase opacity-60;
-  color: #a3a6ff;
-}
-
-.sidebar-nav {
-  @apply flex-1 space-y-1;
-  font-family: 'Manrope', sans-serif;
-}
-
-.sidebar-nav-item {
-  @apply flex items-center gap-3 px-6 py-3 relative;
-  @apply text-slate-400 opacity-70 transition-all;
-}
-
-.sidebar-nav-item:hover {
-  @apply opacity-100;
-  background-color: rgba(31, 43, 73, 0.3);
-  @apply text-white;
-}
-
-.sidebar-nav-item.active {
-  @apply text-white;
-}
-
-.sidebar-nav-item.active::after {
-  content: '';
-  @apply absolute left-0 h-4 w-1 rounded-r-full;
-  background-color: #6366f1;
-}
-
-.sidebar-nav-item .material-symbols-outlined {
-  @apply group-hover:text-[#6366f1];
-}
-
-.sidebar-nav-item.active .material-symbols-outlined {
-  color: #6366f1;
-}
-
-.sidebar-nav-item span:last-child {
-  @apply font-medium;
-}
-
-
-/* ===== MAIN CONTENT ===== */
-.dashboard-main {
-  @apply ml-64 min-h-screen;
-}
-
-
-.dashboard-header {
-  @apply sticky top-0 z-40 w-full flex justify-between items-center px-8;
-  background-color: rgba(6, 14, 32, 0.8);
-  backdrop-filter: blur(24px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  height: 80px;
-  font-family: 'Manrope', sans-serif;
-}
-
-.dashboard-header-title {
-  @apply text-xl font-bold text-white tracking-tight;
-}
-
-.dashboard-header-right {
-  @apply flex items-center gap-6;
-}
-
-.live-badge {
-  @apply flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase;
-  background-color: #0f1930;
-  color: #ffa5d9;
-}
-
-.live-badge .dot {
-  @apply relative flex h-2 w-2;
-}
-
-.live-badge .dot::before {
-  content: '';
-  @apply absolute inline-flex h-full w-full rounded-full;
-  background-color: #ffa5d9;
-  animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-
-.live-badge .dot::after {
-  content: '';
-  @apply relative inline-flex rounded-full h-2 w-2;
-  background-color: #ffa5d9;
-}
-
-@keyframes ping {
-  75%, 100% {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
-
-
-/* ===== CANVAS CONTENT ===== */
-.dashboard-canvas {
-  @apply p-8 space-y-8;
-}
-
-
-/* ===== BENTO GRID ===== */
-.bento-grid {
-  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6;
-}
-
-/* Glass Card */
-.glass-card {
-  background: rgba(25, 37, 64, 0.4);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(163, 166, 255, 0.1);
-  @apply rounded-xl p-6;
-}
-
-.glass-card:hover .kinetic-gradient {
-  @apply opacity-100;
-}
-
-.kinetic-gradient {
-  @apply absolute inset-0 opacity-0 transition-opacity;
-  background: linear-gradient(135deg, rgba(163, 166, 255, 0.12) 0%, rgba(162, 142, 252, 0.12) 100%);
-}
-
-/* Stat Card */
-.stat-label {
-  @apply text-[#a3aac4] text-xs font-bold uppercase tracking-widest mb-2;
-}
-
-.stat-value {
-  @apply flex items-baseline gap-2;
-}
-
-.stat-number {
-  @apply text-4xl font-black text-white;
-  font-family: 'Manrope', sans-serif;
-}
-
-.stat-change {
-  @apply text-xs font-medium;
-  color: #a3a6ff;
-}
-
-
-.stat-icon {
-  @apply absolute -bottom-2 -right-2 text-7xl text-white/5;
-  transform: rotate(12deg);
-}
-
-
-/* Action badge */
-.action-badge {
-  @apply px-2 py-0.5 rounded uppercase text-[10px] font-bold;
-  background-color: rgba(255, 110, 132, 0.2);
-  color: #d73357;
-}
-
-
-/* ===== CHARTS SECTION ===== */
-.charts-grid {
-  @apply grid grid-cols-1 lg:grid-cols-2 gap-8;
-}
-
-.chart-card {
-  @apply rounded-2xl p-8 min-h-[400px] flex flex-col;
-  background: rgba(25, 37, 64, 0.4);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(163, 166, 255, 0.1);
-}
-
-.chart-title {
-  @apply text-xl font-bold text-white mb-1;
-  font-family: 'Manrope', sans-serif;
-}
-
-.chart-subtitle {
-  @apply text-[#a3aac4] text-sm;
-}
-
-.chart-controls {
-  @apply flex gap-2;
-}
-
-
-.chart-btn {
-  @apply px-3 py-1 rounded text-xs;
-  background-color: #192540;
-  @apply text-[#a3aac4];
-}
-
-.chart-btn.active {
-  background-color: #a3a6ff;
-  @apply text-black font-bold;
-}
-
-/* Chart visualization */
-.chart-viz {
-  @apply flex-1 w-full relative;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  padding: 0 8px;
-}
-
-
-.chart-bar {
-  @apply w-1.5 rounded-t;
-  background-color: rgba(163, 166, 255, 0.2);
-}
-
-.chart-bar.active {
-  background-color: #a3a6ff;
-  box-shadow: 0 0 15px rgba(163, 166, 255, 0.4);
-}
-
-/* Demand bar chart */
-.demand-chart {
-  @apply grid grid-cols-7 gap-4 items-end;
-}
-
-
-.demand-bar {
-  @apply space-y-2 text-center;
-}
-
-
-.demand-bar-fill {
-  @apply h-32 w-full rounded-lg relative overflow-hidden;
-  background-color: rgba(162, 142, 252, 0.1);
-}
-
-
-.demand-bar-fill .bar {
-  @apply absolute bottom-0 w-full rounded-lg;
-  background-color: #a28efc;
-}
-
-.demand-bar-fill .bar.highlight {
-  box-shadow: 0 0 20px rgba(162, 142, 252, 0.3);
-}
-
-.demand-bar-label {
-  @apply text-[10px] uppercase font-bold;
-  color: #6d758c;
-}
-
-
-.demand-bar-label.today {
-  color: #a3a6ff;
-}
-
-/* =========================
-   KINETIC LUMINESCENCE DESIGN SYSTEM
-   (Glass, No-Line, Surface Hierarchy)
-========================= */
-
-/* Glass Effect - For high-priority intelligence */
-.glass {
-  background: rgba(15, 25, 48, 0.6);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(163, 166, 255, 0.1);
-}
-
-/* Glass Priority - Signature Texture with gradient */
-.glass-priority {
-  background: rgba(25, 37, 64, 0.6);
-  backdrop-filter: blur(20px);
-  background: linear-gradient(135deg, rgba(163, 166, 255, 0.12) 0%, rgba(162, 142, 252, 0.12) 100%);
-  border: 1px solid rgba(163, 166, 255, 0.15);
-}
-
-/* Ghost Border Fallback - Hint of edge without closing layout */
-.ghost-border {
-  border: 1px solid rgba(64, 72, 93, 0.15);
-}
-
-/* Kinetic Gradient - Subtle pulsing data-driven soul */
-.kinetic-gradient {
-  background: linear-gradient(135deg, rgba(163, 166, 255, 0.12) 0%, rgba(162, 142, 252, 0.12) 100%);
-}
-
-/* No dividers - Use spacing instead */
-.no-divider {
-  border: none;
-}
-
-/* Intelligence Chips - Status indicators */
-.chip {
-  @apply px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide;
-}
-
-.chip-increase {
-  background-color: rgba(255, 165, 217, 0.2);
-  color: #ffa5d9;
-}
-
-.chip-stable {
-  background-color: rgba(31, 43, 73, 0.8);
-  color: #a3aac4;
-}
-
-.chip-decrease {
-  background-color: rgba(255, 110, 132, 0.2);
-  color: #d73357;
-}
-
-/* Live Pulse Animation */
-@keyframes livePulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.live-pulse {
-  animation: livePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Staggered Loading - Reinforces Kinetic nature */
-.stagger-children > * {
-  animation: slideUp 0.5s ease-out backwards;
-}
-
-.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 100ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 200ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 300ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 400ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 500ms; }
-
-/* Navigation - Active dot instead of box */
-.nav-dot {
-  @apply w-1 h-1 rounded-full;
-  background-color: #a3a6ff;
-}
-
-/* Surface container shortcuts */
-.surface-level-1 { background-color: #060e20; } /* Base */
-.surface-level-2 { background-color: #0f1930; } /* Section */
-.surface-level-3 { background-color: #141f38; } /* Component */
-.surface-level-4 { background-color: #1f2b49; } /* Interaction */
-
-/* Hover: Move up surface scale */
-.surface-hover:hover {
-  background-color: #1f2b49;
-}
-
-/* Primary/Secondary spectrum helpers */
-.text-spectrum-primary {
-  color: #a3a6ff;
-}
-
-.text-spectrum-secondary {
-  color: #a28efc;
-}
-
-.text-spectrum-tertiary {
-  color: #ffa5d9;
-}
-
-/* Ambient shadow for floating elements */
-.shadow-ambient {
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
-}
-
-
-/* ===== TABLE SECTION ===== */
-.table-card {
-  @apply rounded-2xl overflow-hidden;
-  background: rgba(25, 37, 64, 0.4);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(163, 166, 255, 0.1);
-}
-
-.table-header {
-  @apply p-8 border-b flex justify-between items-center;
-  border-color: rgba(255, 255, 255, 0.05);
-}
-
-.table-header h4 {
-  @apply text-xl font-bold text-white;
-  font-family: 'Manrope', sans-serif;
-}
-
-
-.table-link {
-  @apply text-[#a3a6ff] text-sm font-bold flex items-center gap-2 hover:underline;
-}
-
-.table-content {
-  @apply overflow-x-auto;
-}
-
-.table {
-  @apply w-full text-left;
-}
-
-.table thead th {
-  @apply px-8 py-4 font-bold text-[10px] uppercase tracking-widest;
-  color: #6d758c;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.table tbody td {
-  @apply px-8 py-5;
-}
-
-.table tbody tr {
-  @apply transition-colors;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.table tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-/* Product cell */
-.product-cell {
-  @apply flex items-center gap-3;
-}
-
-.product-icon {
-  @apply w-10 h-10 rounded flex items-center justify-center;
-  background-color: #192540;
-}
-
-.product-name {
-  @apply text-white font-medium;
-}
-
-/* Price cells */
-.price-old {
-  @apply text-[#a3aac4];
-}
-
-.price-new {
-  @apply text-white font-bold;
-}
-
-/* Delta */
-.delta-up {
-  @apply font-bold;
-  color: #ffa5d9;
-}
-
-.delta-down {
-  @apply font-bold;
-  color: #d73357;
-}
-
-/* Status */
-.status-badge {
-  @apply flex items-center gap-2;
-}
-
-.status-badge.rising {
-  @apply text-[#ffa5d9];
-}
-
-.status-badge.falling {
-  @apply text-[#d73357];
-}
-
-.status-icon {
-  @apply text-xl;
-}
-
-.status-text {
-  @apply text-xs font-bold uppercase tracking-tight;
-}
-
-/* View audit link */
-.view-link {
-  @apply text-[#a3a6ff] text-sm;
-}
-
-.view-link .material-symbols-outlined {
-  @apply text-sm;
-}
-
-
-/* ===== FONTS ===== */
-.font-headline {
-  font-family: 'Manrope', sans-serif;
-}
-
-.font-body {
-  font-family: 'Inter', sans-serif;
-}
-
-/* Material Symbols Outlined fill */
-.material-symbols-outlined.fill {
-  font-variation-settings: 'FILL' 1;
-}
-
-/* Chart bar heights - using arbitrary values via style, but we can create classes */
-.chart-bar-40 { height: 40%; }
-.chart-bar-45 { height: 45%; }
-.chart-bar-50 { height: 50%; }
-.chart-bar-55 { height: 55%; }
-.chart-bar-60 { height: 60%; }
-.chart-bar-65 { height: 65%; }
-.chart-bar-70 { height: 70%; }
-.chart-bar-80 { height: 80%; }
-.chart-bar-85 { height: 85%; }
-.chart-bar-90 { height: 90%; }
-
-/* Demand bar heights */
-.demand-h-30 { height: 30%; }
-.demand-h-40 { height: 40%; }
-.demand-h-50 { height: 50%; }
-.demand-h-60 { height: 60%; }
-.demand-h-70 { height: 70%; }
-.demand-h-85 { height: 85%; }
-.demand-h-95 { height: 95%; }

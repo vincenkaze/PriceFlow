@@ -40,7 +40,7 @@ class DemandAnalyzer:
         self.running = True
         self.thread = threading.Thread(target=self._run_loop, daemon=True)
         self.thread.start()
-        print(f" Demand Analyzer started — refreshing every {interval}s")
+        print(f"[DEMAND] Analyzer started - refreshing every {interval}s")
 
     def _run_loop(self):
         with self.app.app_context():
@@ -48,7 +48,7 @@ class DemandAnalyzer:
                 try:
                     self.refresh_active_products()
                 except Exception as e:
-                    print(f" Demand analysis error: {e}")
+                    print(f"[DEMAND] Analysis error: {e}")
                 time.sleep(15)  # Refresh every 15 seconds
     
     def _get_window(self, end_time: Optional[datetime] = None) -> Tuple[datetime, datetime]:
@@ -105,7 +105,7 @@ class DemandAnalyzer:
         active_pids = [row[0] for row in active_pids_query.all()]
 
         if not active_pids:
-            print("No active products in window — skipping refresh")
+            print("[DEMAND] No active products in window - skipping refresh")
             return []
 
         records = []
@@ -153,7 +153,7 @@ class DemandAnalyzer:
         if keep_only_latest_per_product:
             self._prune_old_scores(active_pids)
 
-        print(f"Refreshed demand scores for {len(records)} active products")
+        print(f"[DEMAND] Refreshed demand scores for {len(records)} active products")
         return records
 
     def _prune_old_scores(self, product_ids: List[int]) -> None:

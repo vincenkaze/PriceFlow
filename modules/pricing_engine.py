@@ -5,6 +5,12 @@ from app.extensions import db
 from app.models import Product, PriceHistory, DemandScore
 from app.config import Config
 
+# Import WebSocket emitter (optional - graceful fallback)
+try:
+    from modules.websocket_emitter import ws_emitter
+except ImportError:
+    ws_emitter = None
+
 class PricingEngine:
     def __init__(self):
         self.running = False
@@ -19,7 +25,7 @@ class PricingEngine:
         self.running = True
         self.thread = threading.Thread(target=self._run_loop, daemon=True)
         self.thread.start()
-        print(" PRICING ENGINE STARTED — checking DemandScore every {}s".format(self.interval))
+        print("[PRICE] Engine started - checking DemandScore every {}s".format(self.interval))
 
     def _run_loop(self):
         with self.app.app_context():
@@ -27,7 +33,7 @@ class PricingEngine:
                 try:
                     self._update_prices()
                 except Exception as e:
-                    print(f" Pricing error: {e}")
+                    print(f"[PRICE] Error: {e}")
                 time.sleep(self.interval)
 
     def _update_prices(self):
@@ -48,8 +54,24 @@ class PricingEngine:
 
         products = Product.query.all()
         updated = 0
+        restocked = []
 
         for product in products:
+            # ================== AUTO RESTOCK ==================
+            # If stock drops below threshold, restock automatically
+            base_stock = 80  # Default base stock level
+            if product.stock <= Config.AUTO_RESTOCK_THRESHOLD:
+                old_stock = product.stock
+                product.stock = min(product.stock + Config.AUTO_RESTOCK_AMOUNT, base_stock)
+                restocked.append({
+                    'product_id': product.product_id,
+                    'product_name': product.name,
+                    'old_stock': old_stock,
+                    'new_stock': product.stock,
+                    'amount_added': Config.AUTO_RESTOCK_AMOUNT
+                })
+                print(f"[RESTOCK] {product.name}: {old_stock} -> {product.stock} units")
+
             demand_score = demand_map.get(product.product_id, 0)
             stock_ratio = product.stock / 100.0 if product.stock > 0 else 0.0
 
@@ -85,7 +107,40 @@ class PricingEngine:
 
         db.session.commit()
 
-        if updated > 0:
-            print(f" Pricing updated {updated} products — some prices just moved!")
+        # Emit restock events if any products were restocked
+        if restocked:
+            print(f"[RESTOCK] {len(restocked)} products restocked")
+            if ws_emitter:
+                ws_emitter.emit_restock({
+                    'products': restocked,
+                    'timestamp': datetime.utcnow().isoformat()
+                })
+        
+        if updated > 0 or restocked:
+            print(f"[PRICE] Updated {updated} products - some prices just moved!")
+            
+            # Emit detailed WebSocket event for homepage real-time updates
+            if ws_emitter:
+                # Get updated products data for homepage
+                updated_products = []
+                for product in products:
+                    if product.current_price != product.base_price:
+                        demand_label = 'HIGH DEMAND' if product.stock < 30 else ('TRENDING' if product.stock < 50 else 'STABLE')
+                        change_pct = ((product.current_price - product.base_price) / product.base_price) * 100
+                        updated_products.append({
+                            'product_id': product.product_id,
+                            'current_price': float(product.current_price),
+                            'base_price': float(product.base_price),
+                            'change_percent': round(change_pct, 1),
+                            'demand_label': demand_label,
+                            'stock': product.stock
+                        })
+                
+                ws_emitter.emit_price_change({
+                    'updated_count': updated,
+                    'products': updated_products,
+                    'restocked': [r['product_id'] for r in restocked],
+                    'timestamp': datetime.utcnow().isoformat()
+                })
 
 pricing_engine = PricingEngine()

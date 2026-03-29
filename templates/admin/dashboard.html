@@ -2,59 +2,41 @@
 
 {% block title %}PriceFlow | Dashboard{% endblock %}
 
-{% block extra_head %}
-<style>
-  /* Dashboard-specific animations */
-  .animate-in { animation: slideUp 0.6s ease-out backwards; }
-</style>
-{% endblock %}
-
 {% block sidebar %}
-<aside class="w-64 h-screen fixed left-0 top-0 bg-background flex flex-col py-8 z-50">
-  <!-- Brand -->
+<aside class="h-screen w-64 left-0 top-0 overflow-y-auto bg-[#060e20] border-r border-white/5 shadow-2xl shadow-black/50 z-50 flex flex-col py-8 font-['Manrope'] antialiased tracking-tight">
   <div class="px-6 mb-12">
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-        <span class="material-symbols-outlined text-black text-xl">insights</span>
+      <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+        <span class="material-symbols-outlined text-on-primary text-xl">insights</span>
       </div>
       <div>
-        <h1 class="font-headline text-2xl font-black text-white tracking-tight">PriceFlow</h1>
-        <p class="text-[10px] font-bold tracking-[0.2em] uppercase opacity-60 text-primary">v2.4.0</p>
+        <h1 class="text-2xl font-black text-white tracking-tighter">PriceFlow</h1>
+        <p class="text-[10px] text-primary font-bold tracking-[0.2em] uppercase opacity-60">v2.4.0</p>
       </div>
     </div>
   </div>
   
-  <!-- Navigation (Vertical Spine) -->
-  <nav class="flex-1 px-3 space-y-1">
-    <a href="#" class="flex items-center gap-3 px-4 py-3 text-white relative group">
-      <span class="w-1 h-1 absolute left-2 rounded-full bg-primary"></span>
-      <span class="material-symbols-outlined text-primary" data-weight="fill">dashboard</span>
+  <nav class="flex-1 space-y-1">
+    <a class="flex items-center gap-3 px-6 py-3 text-white relative after:content-[''] after:absolute after:left-0 after:h-4 after:w-1 after:bg-[#6366f1] after:rounded-r-full group" href="#">
+      <span class="material-symbols-outlined text-[#6366f1]">dashboard</span>
       <span class="font-medium">Dashboard</span>
     </a>
-    
-    <a href="#" class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white transition-all opacity-70 hover:opacity-100">
-      <span class="material-symbols-outlined group-hover:text-primary">payments</span>
+    <a class="flex items-center gap-3 px-6 py-3 text-slate-400 opacity-70 hover:opacity-100 transition-all hover:bg-[#1f2b49]/30 hover:text-white group" href="#">
+      <span class="material-symbols-outlined group-hover:text-[#6366f1]">payments</span>
       <span class="font-medium">Pricing</span>
     </a>
-    
-    <a href="{{ url_for('admin.trigger_simulation') }}" class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white transition-all opacity-70 hover:opacity-100">
-      <span class="material-symbols-outlined group-hover:text-primary">play_arrow</span>
-      <span class="font-medium">Simulation</span>
+    <a class="flex items-center gap-3 px-6 py-3 text-slate-400 opacity-70 hover:opacity-100 transition-all hover:bg-[#1f2b49]/30 hover:text-white group" href="{{ url_for('admin.products') }}">
+      <span class="material-symbols-outlined group-hover:text-[#6366f1]">inventory</span>
+      <span class="font-medium">Products</span>
     </a>
-    
-    <a href="{{ url_for('admin.trigger_demand') }}" class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white transition-all opacity-70 hover:opacity-100">
-      <span class="material-symbols-outlined group-hover:text-primary">analytics</span>
-      <span class="font-medium">Demand</span>
-    </a>
-    
-    <a href="{{ url_for('admin.trigger_pricing') }}" class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white transition-all opacity-70 hover:opacity-100">
-      <span class="material-symbols-outlined group-hover:text-primary">attach_money</span>
-      <span class="font-medium">Pricing Engine</span>
+    <a class="flex items-center gap-3 px-6 py-3 text-slate-400 opacity-70 hover:opacity-100 transition-all hover:bg-[#1f2b49]/30 hover:text-white group" href="#">
+      <span class="material-symbols-outlined group-hover:text-[#6366f1]">analytics</span>
+      <span class="font-medium">Analytics</span>
     </a>
     
     <div class="pt-8 mt-8 border-t border-white/5">
-      <a href="{{ url_for('admin.logout') }}" class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white transition-all opacity-70 hover:opacity-100">
-        <span class="material-symbols-outlined group-hover:text-primary">logout</span>
+      <a href="{{ url_for('admin.logout') }}" class="flex items-center gap-3 px-6 py-3 text-slate-400 opacity-70 hover:opacity-100 transition-all hover:bg-[#1f2b49]/30 hover:text-white group">
+        <span class="material-symbols-outlined group-hover:text-[#6366f1]">logout</span>
         <span class="font-medium">Logout</span>
       </a>
     </div>
@@ -63,12 +45,24 @@
 {% endblock %}
 
 {% block header %}
-<header class="sticky top-0 z-40 w-full bg-background/80 backdrop-blur-xl border-b border-white/5 flex justify-between items-center px-8 h-20 font-headline font-medium">
+<header class="sticky top-0 z-40 w-full bg-[#060e20]/80 backdrop-blur-xl border-b border-white/5 flex justify-between items-center px-8 h-20 font-['Manrope'] font-medium">
   <div class="flex items-center gap-6 flex-1">
     <h2 class="text-xl font-bold text-white tracking-tight">System Overview</h2>
   </div>
   <div class="flex items-center gap-6">
-    <!-- Live Data Badge (Intelligence Chip) -->
+    <!-- Auto-refresh toggle -->
+    <div class="flex items-center gap-2">
+      <label for="auto-refresh-toggle" class="text-xs text-on-surface-variant cursor-pointer">Auto-refresh</label>
+      <button id="auto-refresh-toggle" class="w-10 h-5 rounded-full bg-surface-container-highest relative transition-colors cursor-pointer" role="switch" aria-checked="false">
+        <span class="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-primary transition-transform"></span>
+      </button>
+    </div>
+    <!-- Manual refresh button -->
+    <button onclick="refreshData()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-highest hover:bg-surface-bright transition text-primary text-sm font-medium">
+      <span class="material-symbols-outlined text-sm" id="refresh-icon">refresh</span>
+      Refresh
+    </button>
+    <!-- Live Data indicator -->
     <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container text-[10px] font-bold tracking-widest uppercase text-tertiary">
       <span class="relative flex h-2 w-2">
         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
@@ -81,59 +75,58 @@
 {% endblock %}
 
 {% block content %}
-<!-- Staggered Animation Container -->
-<div class="space-y-8 stagger-children">
+<div class="p-8 space-y-8">
   
-  <!-- Bento Stats Grid -->
+  <!-- Bento Stats Row -->
   <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
     
     <!-- Card 1: Total Products -->
-    <div class="glass rounded-xl p-6 relative overflow-hidden group animate-in">
+    <div class="glass-card rounded-xl p-6 relative overflow-hidden group">
       <div class="kinetic-gradient absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
       <div class="relative z-10">
         <p class="text-on-surface-variant text-xs font-bold uppercase tracking-widest mb-2">Total Products</p>
         <div class="flex items-baseline gap-2">
-          <h3 class="text-4xl font-black font-headline text-white">{{ products|length }}</h3>
-          <span class="text-xs text-primary font-medium">active</span>
+          <h3 class="text-4xl font-black font-headline text-white" id="stat-products">--</h3>
+          <span class="text-xs text-primary font-medium" id="stat-products-label">loading...</span>
         </div>
       </div>
       <span class="material-symbols-outlined absolute -bottom-2 -right-2 text-7xl text-white/5 rotate-12">inventory_2</span>
     </div>
     
-    <!-- Card 2: Demand Scores -->
-    <div class="glass rounded-xl p-6 relative overflow-hidden group animate-in">
+    <!-- Card 2: Avg. Price Change -->
+    <div class="glass-card rounded-xl p-6 relative overflow-hidden group">
       <div class="kinetic-gradient absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
       <div class="relative z-10">
-        <p class="text-on-surface-variant text-xs font-bold uppercase tracking-widest mb-2">Demand Scores</p>
+        <p class="text-on-surface-variant text-xs font-bold uppercase tracking-widest mb-2">Avg. Price Change</p>
         <div class="flex items-baseline gap-2">
-          <h3 class="text-4xl font-black font-headline text-white">{{ latest_demand|length }}</h3>
-          <span class="text-xs text-primary font-medium">calculated</span>
+          <h3 class="text-4xl font-black font-headline text-white" id="stat-price-change">--</h3>
+          <span class="material-symbols-outlined text-tertiary text-sm" id="stat-price-change-icon"></span>
         </div>
       </div>
       <span class="material-symbols-outlined absolute -bottom-2 -right-2 text-7xl text-white/5 rotate-12">query_stats</span>
     </div>
     
-    <!-- Card 3: Price Changes -->
-    <div class="glass rounded-xl p-6 relative overflow-hidden group animate-in">
+    <!-- Card 3: Low Stock Items -->
+    <div class="glass-card rounded-xl p-6 relative overflow-hidden group">
       <div class="kinetic-gradient absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
       <div class="relative z-10">
-        <p class="text-on-surface-variant text-xs font-bold uppercase tracking-widest mb-2">Price Changes</p>
+        <p class="text-on-surface-variant text-xs font-bold uppercase tracking-widest mb-2">Low Stock Items</p>
         <div class="flex items-baseline gap-2">
-          <h3 class="text-4xl font-black font-headline text-white">{{ recent_changes|length }}</h3>
-          <span class="text-xs text-primary font-medium">today</span>
+          <h3 class="text-4xl font-black font-headline text-white" id="stat-low-stock">--</h3>
+          <div class="bg-error-container/20 text-error-dim text-[10px] px-2 py-0.5 rounded uppercase font-bold" id="stat-low-stock-badge" style="display: none;">Action Required</div>
         </div>
       </div>
-      <span class="material-symbols-outlined absolute -bottom-2 -right-2 text-7xl text-white/5 rotate-12">trending_up</span>
+      <span class="material-symbols-outlined absolute -bottom-2 -right-2 text-7xl text-white/5 rotate-12">warning</span>
     </div>
     
-    <!-- Card 4: Actions -->
-    <div class="glass rounded-xl p-6 relative overflow-hidden group animate-in">
+    <!-- Card 4: Active Users -->
+    <div class="glass-card rounded-xl p-6 relative overflow-hidden group">
       <div class="kinetic-gradient absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
       <div class="relative z-10">
-        <p class="text-on-surface-variant text-xs font-bold uppercase tracking-widest mb-2">User Actions (24h)</p>
+        <p class="text-on-surface-variant text-xs font-bold uppercase tracking-widest mb-2">Active Users</p>
         <div class="flex items-baseline gap-2">
-          <h3 class="text-4xl font-black font-headline text-white">{{ total_actions }}</h3>
-          <span class="text-xs text-primary font-medium">events</span>
+          <h3 class="text-4xl font-black font-headline text-white" id="stat-users">--</h3>
+          <span class="text-xs text-primary font-medium" id="stat-users-label">loading...</span>
         </div>
       </div>
       <span class="material-symbols-outlined absolute -bottom-2 -right-2 text-7xl text-white/5 rotate-12">group</span>
@@ -142,156 +135,569 @@
   
   <!-- Charts Section -->
   <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    
     <!-- Price Chart -->
-    <div class="glass rounded-2xl p-8 min-h-[400px] flex flex-col animate-in">
-      <div class="flex justify-between items-start mb-8">
+    <div class="glass-card rounded-2xl p-8 min-h-[400px] flex flex-col">
+      <div class="flex justify-between items-start mb-8 flex-wrap gap-3">
         <div>
-          <h4 class="font-headline text-xl font-bold text-white mb-1">Price vs Time</h4>
+          <h4 class="text-xl font-bold font-headline text-white mb-1">Price vs Time</h4>
           <p class="text-on-surface-variant text-sm">Real-time aggregate market fluctuations</p>
         </div>
         <div class="flex gap-2">
           <button class="px-3 py-1 rounded bg-surface-container-highest text-xs text-on-surface hover:bg-surface-bright transition">1H</button>
-          <button class="px-3 py-1 rounded bg-primary text-black text-xs font-bold">24H</button>
+          <button class="px-3 py-1 rounded bg-primary text-on-primary-fixed text-xs font-bold">24H</button>
           <button class="px-3 py-1 rounded bg-surface-container-highest text-xs text-on-surface hover:bg-surface-bright transition">7D</button>
         </div>
       </div>
       
-      <!-- Chart Visualization -->
-      <div class="flex-1 flex items-end justify-between px-4">
-        <div class="w-3 bg-primary/20 rounded-t h-[40%]"></div>
-        <div class="w-3 bg-primary/20 rounded-t h-[60%]"></div>
-        <div class="w-3 bg-primary/20 rounded-t h-[45%]"></div>
-        <div class="w-3 bg-primary/20 rounded-t h-[80%]"></div>
-        <div class="w-3 bg-primary rounded-t h-[90%] shadow-[0_0_15px_rgba(163,166,255,0.4)]"></div>
-        <div class="w-3 bg-primary/20 rounded-t h-[70%]"></div>
-        <div class="w-3 bg-primary/20 rounded-t h-[55%]"></div>
-        <div class="w-3 bg-primary/20 rounded-t h-[65%]"></div>
-        <div class="w-3 bg-primary/20 rounded-t h-[40%]"></div>
-        <div class="w-3 bg-primary/20 rounded-t h-[50%]"></div>
-        <div class="w-3 bg-primary/20 rounded-t h-[85%]"></div>
+      <!-- Dynamic Chart Container -->
+      <div class="flex-1 w-full relative group" id="price-chart-container">
+        <!-- Loading state -->
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="flex flex-col items-center gap-2">
+            <div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-xs text-on-surface-variant">Loading chart data...</span>
+          </div>
+        </div>
       </div>
     </div>
     
     <!-- Demand Score Chart -->
-    <div class="glass rounded-2xl p-8 min-h-[400px] flex flex-col animate-in">
+    <div class="glass-card rounded-2xl p-8 min-h-[400px] flex flex-col">
       <div class="flex justify-between items-start mb-8">
         <div>
-          <h4 class="font-headline text-xl font-bold text-white mb-1">Demand Score vs Time</h4>
+          <h4 class="text-xl font-bold font-headline text-white mb-1">Demand Score vs Time</h4>
           <p class="text-on-surface-variant text-sm">Predictive purchase intent modeling</p>
         </div>
         <span class="material-symbols-outlined text-primary text-2xl">auto_graph</span>
       </div>
       
-      <!-- Bar Chart -->
-      <div class="flex-1 grid grid-cols-7 gap-4 items-end">
-        <div class="text-center">
-          <div class="h-32 w-full bg-secondary/10 rounded-lg relative overflow-hidden mb-2">
-            <div class="absolute bottom-0 w-full h-[60%] bg-secondary rounded-lg"></div>
+      <!-- Dynamic Chart Container -->
+      <div class="flex-1 grid grid-cols-7 gap-4 items-end" id="demand-chart-container">
+        <!-- Loading state -->
+        <div class="col-span-7 flex items-center justify-center h-full">
+          <div class="flex flex-col items-center gap-2">
+            <div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-xs text-on-surface-variant">Loading chart data...</span>
           </div>
-          <span class="text-[10px] uppercase font-bold text-outline">Mon</span>
-        </div>
-        <div class="text-center">
-          <div class="h-32 w-full bg-secondary/10 rounded-lg relative overflow-hidden mb-2">
-            <div class="absolute bottom-0 w-full h-[85%] bg-secondary rounded-lg"></div>
-          </div>
-          <span class="text-[10px] uppercase font-bold text-outline">Tue</span>
-        </div>
-        <div class="text-center">
-          <div class="h-32 w-full bg-secondary/10 rounded-lg relative overflow-hidden mb-2">
-            <div class="absolute bottom-0 w-full h-[40%] bg-secondary rounded-lg"></div>
-          </div>
-          <span class="text-[10px] uppercase font-bold text-outline">Wed</span>
-        </div>
-        <div class="text-center">
-          <div class="h-32 w-full bg-secondary/10 rounded-lg relative overflow-hidden mb-2">
-            <div class="absolute bottom-0 w-full h-[95%] bg-secondary rounded-lg shadow-[0_0_20px_rgba(162,142,252,0.3)]"></div>
-          </div>
-          <span class="text-[10px] uppercase font-bold text-primary">Thu</span>
-        </div>
-        <div class="text-center">
-          <div class="h-32 w-full bg-secondary/10 rounded-lg relative overflow-hidden mb-2">
-            <div class="absolute bottom-0 w-full h-[70%] bg-secondary rounded-lg"></div>
-          </div>
-          <span class="text-[10px] uppercase font-bold text-outline">Fri</span>
-        </div>
-        <div class="text-center">
-          <div class="h-32 w-full bg-secondary/10 rounded-lg relative overflow-hidden mb-2">
-            <div class="absolute bottom-0 w-full h-[30%] bg-secondary rounded-lg"></div>
-          </div>
-          <span class="text-[10px] uppercase font-bold text-outline">Sat</span>
-        </div>
-        <div class="text-center">
-          <div class="h-32 w-full bg-secondary/10 rounded-lg relative overflow-hidden mb-2">
-            <div class="absolute bottom-0 w-full h-[50%] bg-secondary rounded-lg"></div>
-          </div>
-          <span class="text-[10px] uppercase font-bold text-outline">Sun</span>
         </div>
       </div>
     </div>
   </section>
   
   <!-- Adjustments Table -->
-  <section class="glass rounded-2xl overflow-hidden animate-in">
+  <section class="glass-card rounded-2xl overflow-hidden">
     <div class="p-8 border-b border-white/5 flex justify-between items-center">
-      <h4 class="font-headline text-xl font-bold text-white">Recent Dynamic Adjustments</h4>
-      <a href="#" class="text-primary text-sm font-bold flex items-center gap-2 hover:underline">
+      <h4 class="text-xl font-bold font-headline text-white">Recent Dynamic Adjustments</h4>
+      <button class="text-primary text-sm font-bold flex items-center gap-2 hover:underline cursor-pointer">
         View Audit Log
         <span class="material-symbols-outlined text-sm">open_in_new</span>
-      </a>
+      </button>
     </div>
     
     <div class="overflow-x-auto">
       <table class="w-full text-left">
         <thead>
           <tr class="text-outline text-[10px] uppercase tracking-widest border-b border-white/5">
-            <th class="px-8 py-4 font-bold">Product</th>
+            <th class="px-8 py-4 font-bold">Product Name</th>
             <th class="px-8 py-4 font-bold">Old Price</th>
             <th class="px-8 py-4 font-bold">New Price</th>
             <th class="px-8 py-4 font-bold">Delta</th>
             <th class="px-8 py-4 font-bold">Status</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-white/5">
-          {% for change in recent_changes %}
-          <tr class="hover:bg-white/5 transition-colors group">
-            <td class="px-8 py-5">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded bg-surface-container-highest flex items-center justify-center">
-                  <span class="material-symbols-outlined text-primary">inventory_2</span>
-                </div>
-                <span class="text-white font-medium">Product #{{ change.product_id }}</span>
-              </div>
-            </td>
-            <td class="px-8 py-5 text-on-surface-variant">${{ change.old_price }}</td>
-            <td class="px-8 py-5 text-white font-bold">${{ change.new_price }}</td>
-            <td class="px-8 py-5">
-              {% set delta = ((change.new_price - change.old_price) / change.old_price * 100) %}
-              <span class="{% if delta > 0 %}text-tertiary{% else %}text-error-dim{% endif %} font-bold">
-                {% if delta > 0 %}+{% endif %}{{ "%.2f"|format(delta) }}%
-              </span>
-            </td>
-            <td class="px-8 py-5">
-              <!-- Intelligence Chips -->
-              <div class="flex items-center gap-2 {% if delta > 0 %}text-tertiary{% else %}text-error-dim{% endif %}">
-                <span class="material-symbols-outlined text-xl">
-                  {% if delta > 0 %}trending_up{% else %}trending_down{% endif %}
-                </span>
-                <span class="text-xs font-bold uppercase tracking-tight">
-                  {% if delta > 0 %}Rising Demand{% else %}Stock Surplus{% endif %}
-                </span>
-              </div>
-            </td>
-          </tr>
-          {% else %}
+        <tbody class="divide-y divide-white/5" id="price-changes-table">
           <tr>
             <td colspan="5" class="px-8 py-12 text-center text-on-surface-variant">
-              No recent price changes
+              <div class="flex flex-col items-center gap-2">
+                <div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <span class="text-xs">Loading price changes...</span>
+              </div>
             </td>
           </tr>
-          {% endfor %}
         </tbody>
       </table>
     </div>
   </section>
 </div>
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+<style>
+  .glass-card {
+    background: rgba(25, 37, 64, 0.4);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(163, 166, 255, 0.1);
+  }
+  
+  .kinetic-gradient {
+    background: linear-gradient(135deg, rgba(163, 166, 255, 0.12) 0%, rgba(162, 142, 252, 0.12) 100%);
+  }
+  
+  .chart-bar {
+    transition: all 0.3s ease-out;
+  }
+  
+  .chart-bar:hover {
+    filter: brightness(1.2);
+  }
+  
+  /* Empty state */
+  .empty-state {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(6, 14, 32, 0.3);
+    backdrop-filter: blur(4px);
+    border-radius: 0.75rem;
+  }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // ================== Configuration ==================
+  const CONFIG = {
+    refreshRate: 5000, // 5 seconds
+    apiEndpoints: {
+      stats: '/api/dashboard/stats',
+      changes: '/api/dashboard/recent-changes',
+      priceChart: '/api/dashboard/chart/prices',
+      demandChart: '/api/dashboard/chart/demand'
+    },
+    messages: {
+      noPriceData: 'No price data available',
+      noDemandData: 'No demand data available',
+      noChanges: 'No recent price changes',
+      loading: 'loading...'
+    }
+  };
+
+  // ================== Socket.IO Connection ==================
+  let socket = null;
+  let wsConnected = false;
+  
+  function initSocketIO() {
+    if (typeof io === 'undefined') {
+      console.log('Socket.IO client not loaded');
+      return;
+    }
+    
+    try {
+      socket = io();
+      
+      socket.on('connect', function() {
+        console.log('🔌 WebSocket connected!');
+        wsConnected = true;
+        // Update connection status indicator
+        const liveIndicator = document.querySelector('.animate-ping');
+        if (liveIndicator) {
+          liveIndicator.classList.add('bg-green-400');
+        }
+      });
+      
+      socket.on('disconnect', function() {
+        console.log('❌ WebSocket disconnected');
+        wsConnected = false;
+      });
+      
+      // Listen for simulation events
+      socket.on('simulation_tick', function(data) {
+        console.log('📡 Simulation tick:', data);
+        refreshData(); // Auto-refresh on new simulation
+      });
+      
+      // Listen for price change events
+      socket.on('price_change', function(data) {
+        console.log('💰 Price changed:', data);
+        refreshData();
+      });
+      
+      // Listen for full refresh events
+      socket.on('full_refresh', function() {
+        console.log('🔄 Full refresh requested');
+        refreshData();
+      });
+      
+      // Listen for specific data updates
+      socket.on('stats_update', function(data) {
+        updateStats(data);
+      });
+      
+      socket.on('price_chart_update', function(data) {
+        renderPriceChart(data);
+      });
+      
+      socket.on('demand_chart_update', function(data) {
+        renderDemandChart(data);
+      });
+      
+      socket.on('recent_changes_update', function(data) {
+        renderPriceTable(data);
+      });
+      
+    } catch (e) {
+      console.error('Socket.IO init error:', e);
+    }
+  }
+
+  // ================== State ==================
+  let autoRefresh = false;
+  let refreshInterval = null;
+  let isRefreshing = false;
+
+  // ================== Utility Functions ==================
+  function formatNumber(num) {
+    if (num === null || num === undefined || isNaN(num)) return '--';
+    return num.toLocaleString();
+  }
+
+  function formatCurrency(num) {
+    if (num === null || num === undefined || isNaN(num)) return '$--';
+    return '$' + num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function formatPercent(num) {
+    if (num === null || num === undefined || isNaN(num)) return '--%';
+    const prefix = num > 0 ? '+' : '';
+    return prefix + num.toFixed(2) + '%';
+  }
+
+  function getProductIcon(productName) {
+    if (!productName) return 'inventory_2';
+    const name = productName.toLowerCase();
+    if (name.includes('laptop') || name.includes('macbook') || name.includes('pro')) return 'laptop_mac';
+    if (name.includes('phone') || name.includes('iphone') || name.includes('android')) return 'phone_android';
+    if (name.includes('watch') || name.includes('smartwatch') || name.includes('fit')) return 'watch';
+    if (name.includes('headphone') || name.includes('earbud') || name.includes('airpod')) return 'headphones';
+    if (name.includes('tablet') || name.includes('ipad')) return 'tablet_mac';
+    if (name.includes('camera') || name.includes('dslr') || name.includes('mirrorless')) return 'photo_camera';
+    if (name.includes('speaker') || name.includes('soundbar') || name.includes('audio')) return 'speaker';
+    if (name.includes('tv') || name.includes('television') || name.includes('monitor')) return 'tv';
+    if (name.includes('game') || name.includes('playstation') || name.includes('xbox')) return 'sports_esports';
+    return 'inventory_2';
+  }
+
+  // ================== Auto-refresh Toggle ==================
+  document.getElementById('auto-refresh-toggle').addEventListener('click', function() {
+    autoRefresh = !autoRefresh;
+    const knob = this.querySelector('span');
+    if (autoRefresh) {
+      knob.style.transform = 'translateX(20px)';
+      this.classList.add('bg-primary');
+      this.setAttribute('aria-checked', 'true');
+      refreshInterval = setInterval(refreshData, CONFIG.refreshRate);
+      console.log('Auto-refresh enabled');
+    } else {
+      knob.style.transform = 'translateX(0)';
+      this.classList.remove('bg-primary');
+      this.setAttribute('aria-checked', 'false');
+      if (refreshInterval) { 
+        clearInterval(refreshInterval); 
+        refreshInterval = null; 
+      }
+      console.log('Auto-refresh disabled');
+    }
+  });
+
+  // ================== Refresh Icon Animation ==================
+  function animateRefreshIcon() {
+    const icon = document.getElementById('refresh-icon');
+    if (icon) {
+      icon.style.transition = 'transform 0.3s ease';
+      icon.style.transform = 'rotate(180deg)';
+      setTimeout(() => {
+        icon.style.transform = 'rotate(360deg)';
+        setTimeout(() => {
+          icon.style.transform = 'rotate(0deg)';
+        }, 300);
+      }, 300);
+    }
+  }
+
+  // ================== Main Data Fetching ==================
+  async function refreshData() {
+    if (isRefreshing) return;
+    
+    isRefreshing = true;
+    animateRefreshIcon();
+    
+    try {
+      const [stats, priceChanges, priceChart, demandChart] = await Promise.all([
+        fetch(CONFIG.apiEndpoints.stats).then(r => {
+          if (!r.ok) throw new Error('Stats API failed');
+          return r.json();
+        }),
+        fetch(CONFIG.apiEndpoints.changes).then(r => {
+          if (!r.ok) throw new Error('Changes API failed');
+          return r.json();
+        }),
+        fetch(CONFIG.apiEndpoints.priceChart).then(r => {
+          if (!r.ok) throw new Error('Price Chart API failed');
+          return r.json();
+        }),
+        fetch(CONFIG.apiEndpoints.demandChart).then(r => {
+          if (!r.ok) throw new Error('Demand Chart API failed');
+          return r.json();
+        })
+      ]);
+
+      // Update stats
+      updateStats(stats);
+      
+      // Update charts
+      renderPriceChart(priceChart);
+      renderDemandChart(demandChart);
+      
+      // Update table
+      renderPriceTable(priceChanges);
+      
+      console.log('Dashboard data refreshed successfully');
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      isRefreshing = false;
+    }
+  }
+
+  // ================== Update Stats ==================
+  function updateStats(stats) {
+    // Card 1: Total Products
+    const productsEl = document.getElementById('stat-products');
+    const productsLabel = document.getElementById('stat-products-label');
+    if (stats.total_products !== undefined) {
+      productsEl.textContent = formatNumber(stats.total_products);
+      productsLabel.textContent = '+' + formatNumber(stats.products_today || 0) + ' today';
+    }
+
+    // Card 2: Avg. Price Change
+    const priceChangeEl = document.getElementById('stat-price-change');
+    const priceChangeIcon = document.getElementById('stat-price-change-icon');
+    if (stats.avg_price_change !== undefined) {
+      priceChangeEl.textContent = formatPercent(stats.avg_price_change);
+      if (stats.avg_price_change > 0) {
+        priceChangeIcon.textContent = 'trending_up';
+        priceChangeEl.classList.add('text-tertiary');
+        priceChangeEl.classList.remove('text-error-dim');
+      } else if (stats.avg_price_change < 0) {
+        priceChangeIcon.textContent = 'trending_down';
+        priceChangeEl.classList.add('text-error-dim');
+        priceChangeEl.classList.remove('text-tertiary');
+      } else {
+        priceChangeIcon.textContent = 'trending_flat';
+        priceChangeEl.classList.remove('text-tertiary', 'text-error-dim');
+      }
+    } else {
+      priceChangeEl.textContent = formatPercent(stats.price_changes_today || 0);
+      priceChangeIcon.textContent = 'trending_up';
+    }
+
+    // Card 3: Low Stock Items
+    const lowStockEl = document.getElementById('stat-low-stock');
+    const lowStockBadge = document.getElementById('stat-low-stock-badge');
+    if (stats.low_stock_count !== undefined) {
+      lowStockEl.textContent = formatNumber(stats.low_stock_count);
+      if (stats.low_stock_count > 0) {
+        lowStockBadge.style.display = 'block';
+      } else {
+        lowStockBadge.style.display = 'none';
+      }
+    } else {
+      // Fallback: use price changes as proxy
+      lowStockEl.textContent = formatNumber(stats.price_changes_today || 0);
+      lowStockBadge.style.display = stats.price_changes_today > 0 ? 'block' : 'none';
+    }
+
+    // Card 4: Active Users
+    const usersEl = document.getElementById('stat-users');
+    const usersLabel = document.getElementById('stat-users-label');
+    if (stats.actions_today !== undefined) {
+      usersEl.textContent = formatNumber(stats.actions_today);
+      const peakPercent = stats.peak_percent || Math.min(100, Math.round((stats.actions_today / 1000) * 100));
+      usersLabel.textContent = peakPercent + '% peak';
+    }
+  }
+
+  // ================== Render Price Chart ==================
+  function renderPriceChart(data) {
+    const container = document.getElementById('price-chart-container');
+    
+    if (!Array.isArray(data) || data.length === 0 || !data.some(d => d.avg_price > 0)) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <span class="material-symbols-outlined text-4xl text-on-surface-variant opacity-40">timeline</span>
+          <span class="text-sm text-on-surface-variant">${CONFIG.messages.noPriceData}</span>
+        </div>
+      `;
+      return;
+    }
+
+    const validData = data.filter(d => d.avg_price > 0);
+    if (validData.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <span class="material-symbols-outlined text-4xl text-on-surface-variant opacity-40">timeline</span>
+          <span class="text-sm text-on-surface-variant">${CONFIG.messages.noPriceData}</span>
+        </div>
+      `;
+      return;
+    }
+
+    const maxPrice = Math.max(...validData.map(d => d.avg_price));
+    const minPrice = Math.min(...validData.map(d => d.avg_price));
+    
+    // Create bars
+    const barsHtml = data.map(d => {
+      const price = d.avg_price || 0;
+      // Minimum 5% height to prevent collapse
+      const height = maxPrice > minPrice ? Math.max(5, ((price - minPrice) / (maxPrice - minPrice)) * 100) : 50;
+      const isHighest = price === maxPrice;
+      const tooltip = price ? `${d.hour || 'N/A'}: ${formatCurrency(price)}` : 'No data';
+      
+      return `
+        <div class="w-1.5 bg-primary/20 rounded-t transition-all duration-300 chart-bar ${isHighest ? 'bg-primary shadow-[0_0_15px_rgba(163,166,255,0.4)]' : ''}" 
+             style="height: ${height}%" 
+             title="${tooltip}"></div>
+      `;
+    }).join('');
+
+    // SVG path for line
+    const points = validData.map((d, i) => {
+      const x = (i / (validData.length - 1 || 1)) * 100;
+      const price = d.avg_price;
+      const y = maxPrice > minPrice ? 100 - ((price - minPrice) / (maxPrice - minPrice)) * 100 : 50;
+      return `${x},${y}`;
+    }).join(' ');
+
+    container.innerHTML = `
+      <div class="absolute inset-0 flex items-end justify-between px-2 pb-8">
+        ${barsHtml}
+      </div>
+      ${validData.length > 1 ? `
+      <svg class="absolute inset-0 w-full h-full drop-shadow-2xl pointer-events-none" preserveaspectratio="none">
+        <polyline points="${points}" fill="none" stroke="#a3a6ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+      </svg>
+      ` : ''}
+    `;
+  }
+
+  // ================== Render Demand Chart ==================
+  function renderDemandChart(data) {
+    const container = document.getElementById('demand-chart-container');
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    
+    if (!Array.isArray(data) || data.length === 0 || !data.some(d => d.avg_score > 0)) {
+      container.innerHTML = `
+        <div class="col-span-7 empty-state">
+          <span class="material-symbols-outlined text-4xl text-on-surface-variant opacity-40">analytics</span>
+          <span class="text-sm text-on-surface-variant">${CONFIG.messages.noDemandData}</span>
+        </div>
+      `;
+      return;
+    }
+
+    const validData = data.filter(d => d.avg_score > 0);
+    if (validData.length === 0) {
+      container.innerHTML = `
+        <div class="col-span-7 empty-state">
+          <span class="material-symbols-outlined text-4xl text-on-surface-variant opacity-40">analytics</span>
+          <span class="text-sm text-on-surface-variant">${CONFIG.messages.noDemandData}</span>
+        </div>
+      `;
+      return;
+    }
+
+    const maxScore = Math.max(...validData.map(d => d.avg_score || 0));
+    
+    // Create bars for each day
+    const barsHtml = days.map((day, i) => {
+      const dayData = validData[i] || {};
+      const score = dayData.avg_score || 0;
+      // Minimum 8% height to prevent collapse
+      const height = maxScore > 0 ? Math.max(8, (score / maxScore) * 100) : 8;
+      const isToday = i === new Date().getDay() - 1;
+      
+      return `
+        <div class="space-y-2 text-center">
+          <div class="h-32 w-full bg-secondary/10 rounded-lg relative overflow-hidden">
+            <div class="absolute bottom-0 w-full bg-secondary rounded-lg transition-all duration-300 chart-bar ${isToday ? 'shadow-[0_0_20px_rgba(162,142,252,0.3)]' : ''}" 
+                 style="height: ${height}%"></div>
+          </div>
+          <span class="text-[10px] uppercase font-bold ${isToday ? 'text-primary' : 'text-outline'}">${day}</span>
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = barsHtml;
+  }
+
+  // ================== Render Price Table ==================
+  function renderPriceTable(changes) {
+    const tbody = document.getElementById('price-changes-table');
+    
+    if (!Array.isArray(changes) || changes.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="px-8 py-12 text-center text-on-surface-variant">
+            <div class="flex flex-col items-center gap-2">
+              <span class="material-symbols-outlined text-4xl opacity-40">receipt_long</span>
+              <span class="text-sm">${CONFIG.messages.noChanges}</span>
+            </div>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    const html = changes.slice(0, 10).map(c => {
+      const delta = c.old_price > 0 ? ((c.new_price - c.old_price) / c.old_price * 100) : 0;
+      const isPositive = delta > 0;
+      const icon = isPositive ? 'trending_up' : 'trending_down';
+      const status = isPositive ? 'Rising Demand' : (delta < 0 ? 'Stock Surplus' : 'Optimized');
+      const statusClass = isPositive ? 'text-tertiary' : 'text-error-dim';
+      const productIcon = getProductIcon(c.product_name);
+
+      return `
+        <tr class="hover:bg-white/5 transition-colors group">
+          <td class="px-8 py-5">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded bg-surface-container-highest flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary-fixed-dim">${productIcon}</span>
+              </div>
+              <span class="text-white font-medium">${c.product_name || 'Unknown Product'}</span>
+            </div>
+          </td>
+          <td class="px-8 py-5 text-on-surface-variant">${formatCurrency(c.old_price)}</td>
+          <td class="px-8 py-5 text-white font-bold">${formatCurrency(c.new_price)}</td>
+          <td class="px-8 py-5">
+            <span class="${statusClass} font-bold">${formatPercent(delta)}</span>
+          </td>
+          <td class="px-8 py-5">
+            <div class="flex items-center gap-2 ${statusClass}">
+              <span class="material-symbols-outlined text-xl">${icon}</span>
+              <span class="text-xs font-bold uppercase tracking-tighter">${status}</span>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody.innerHTML = html;
+  }
+
+  // ================== Initialize ==================
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('Initializing dashboard...');
+    
+    // Initialize Socket.IO connection
+    initSocketIO();
+    
+    // Initial data fetch
+    refreshData();
+  });
+</script>
 {% endblock %}

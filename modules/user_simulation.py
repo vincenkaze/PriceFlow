@@ -1,4 +1,3 @@
-# modules/user_simulation.py
 import random
 import time
 import threading
@@ -7,6 +6,12 @@ from datetime import datetime
 from app.extensions import db   # ← MUST be from extensions
 from app.config import Config
 from app.models import SimulatedUser, UserType, Product, UserAction
+
+# Import WebSocket emitter (optional - graceful fallback)
+try:
+    from modules.websocket_emitter import ws_emitter
+except ImportError:
+    ws_emitter = None
 
 class SimulationEngine:
     def __init__(self):
@@ -22,16 +27,16 @@ class SimulationEngine:
         self.running = True
         self.thread = threading.Thread(target=self._run_loop, daemon=True)
         self.thread.start()
-        print(f" SIMULATION STARTED with 5 personalities → {Config.NUM_SIMULATED_USERS} users every {self.tick_rate}s")
+        print(f"[SIM] Simulation started - {Config.NUM_SIMULATED_USERS} users every {self.tick_rate}s")
 
     def _run_loop(self):
-        print(" Simulation thread started — waiting for context...")
+        print("[SIM] Simulation thread started - waiting for context...")
         while self.running:
             try:
                 with self.app.app_context():   # ← FULL CONTEXT EVERY TICK
                     self._simulate_one_tick()
             except Exception as e:
-                print(f" Tick error: {e}")
+                print(f"[SIM] Tick error: {e}")
             time.sleep(self.tick_rate)
 
     def _simulate_one_tick(self):
@@ -95,15 +100,19 @@ class SimulationEngine:
                         self._log_action(sim_user.sim_user_id, product.product_id, 'purchase')
                         actions_this_tick += 1
                         product.stock -= 1
-
-                        if product.stock <= Config.AUTO_RESTOCK_THRESHOLD:
-                            product.stock += Config.AUTO_RESTOCK_AMOUNT
-                            print(f" Auto-restocked {product.name} (by {personality})")
+                        # Note: Restock is now handled by pricing engine, not simulation
 
         db.session.commit()
 
         if actions_this_tick > 0:
-            print(f" Tick done → {actions_this_tick} actions | Prices starting to move!")
+            print(f"[SIM] Tick done - {actions_this_tick} actions | Prices starting to move!")
+            
+            # Emit WebSocket event if available
+            if ws_emitter:
+                ws_emitter.emit_simulation_tick({
+                    'actions': actions_this_tick,
+                    'timestamp': datetime.utcnow().isoformat()
+                })
 
     def _log_action(self, sim_user_id, product_id, action_type):
         action = UserAction(

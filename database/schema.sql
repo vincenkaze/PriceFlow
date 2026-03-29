@@ -31,7 +31,9 @@ CREATE TABLE products (
     stock INTEGER NOT NULL CHECK(stock >= 0),
     min_price DECIMAL(10,2),
     max_price DECIMAL(10,2),
+    image_url TEXT DEFAULT '',
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES categories(category_id)
 );
 
