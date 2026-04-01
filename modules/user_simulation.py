@@ -41,10 +41,18 @@ class SimulationEngine:
 
     def _simulate_one_tick(self):
         sim_users = SimulatedUser.query.all()
-        products = Product.query.filter(Product.stock > 0).all()
-        if not products:
+        all_products = Product.query.filter(Product.stock > 0).all()
+        if not all_products:
             return
 
+        # IMPERFECT SIMULATOR: Only give attention to a subset of products
+        # This lets some products naturally "cool down" between attention
+        activity_rate = Config.SIMULATOR_ACTIVITY_RATE
+        num_active = max(1, int(len(all_products) * activity_rate))
+        # Ensure k <= population to avoid ValueError from random.sample
+        k = min(num_active, len(all_products))
+        products = random.sample(all_products, k=k)
+        
         actions_this_tick = 0
 
         for sim_user in sim_users:
@@ -107,7 +115,7 @@ class SimulationEngine:
         db.session.commit()
 
         if actions_this_tick > 0:
-            print(f"[SIM] Tick done - {actions_this_tick} actions | Prices starting to move!")
+            print(f"[SIM] Tick done - {actions_this_tick} actions on {len(products)}/{len(all_products)} products | System breathing!")
             
             # Emit WebSocket event if available
             if ws_emitter:
