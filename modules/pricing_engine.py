@@ -79,22 +79,21 @@ class PricingEngine:
             new_price = old_price
             reason = "Stable"
 
-            # Heuristic rules - adjusted for decay-based scoring
-            # With 0.85 decay/min, scores are much lower than before
-            # High demand (15+): Strong price increase for peak demand
-            if demand_score > 15 and stock_ratio < 0.4:
+            # Heuristic rules - scaled for decayed scoring (scores in range 0-1000+)
+            # High demand (100+): Strong price increase for peak demand
+            if demand_score > 100 and stock_ratio < 0.4:
                 new_price = min(product.base_price * 1.5, old_price * 1.08)
                 reason = "High demand + low stock"
-            # Low demand (<=5): Significant price cut for oversupply
-            elif demand_score < 5 and stock_ratio > 0.7:
+            # Low demand (<=10): Significant price cut for oversupply
+            elif demand_score <= 10 and stock_ratio > 0.7:
                 new_price = max(product.base_price * 0.7, old_price * 0.93)
                 reason = "Low demand + high stock"
-            # Moderate-high demand (8-15): Moderate price increase
-            elif demand_score > 8 and stock_ratio < 0.4:
+            # Moderate-high demand (50-100): Moderate price increase
+            elif demand_score > 50 and stock_ratio < 0.4:
                 new_price = min(product.base_price * 1.25, old_price * 1.05)
                 reason = "Rising demand + scarce stock"
-            # Very low demand (<=3): Slight price reduction for excess stock
-            elif demand_score < 3 and stock_ratio > 0.8:
+            # Very low demand (<=5): Slight price reduction for excess stock
+            elif demand_score <= 5 and stock_ratio > 0.8:
                 new_price = max(product.base_price * 0.85, old_price * 0.95)
                 reason = "Fading demand + excess stock"
 
