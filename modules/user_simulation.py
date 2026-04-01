@@ -52,6 +52,8 @@ class SimulationEngine:
             if not user_type:
                 continue
 
+            # Random product selection for realistic simulation behavior
+            # Each user type has different preferences, so random selection models this
             product = random.choice(products)
             price_ratio = product.current_price / product.base_price
             stock_ratio = product.stock / 100.0

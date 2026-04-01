@@ -8,9 +8,29 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 def home():
     """Homepage with dynamic product data from database"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
+        # Log DB path for debugging
+        db_uri = current_app.config.get('SQLALCHEMY_DATABASE_URI', 'unknown')
+        logger.info(f"[HOME] Database: {db_uri}")
+        
         # Get products with their latest demand scores
         products = Product.query.all()
+        logger.info(f"[HOME] Found {len(products)} products in database")
+        
+        if not products:
+            logger.warning("[HOME] No products found! Database may be empty.")
+            return render_template(
+                'home.html',
+                products=[],
+                featured=[],
+                categories=[],
+                num_sim_users=current_app.config['NUM_SIMULATED_USERS'],
+                tick_rate=current_app.config['SIMULATION_TICK_RATE'],
+                error="No products in database - run seed script"
+            )
         
         product_data = []
         for p in products:
@@ -20,9 +40,11 @@ def home():
             
             demand_label = "In Stock"
             demand_class = "emerald"
+            demand_score = 50  # Baseline score for products with no activity
             
             if demand:
                 score = demand.demand_score
+                demand_score = score
                 if score >= 80:
                     demand_label = "High Demand"
                     demand_class = "red"
@@ -32,6 +54,8 @@ def home():
                 elif score <= 30:
                     demand_label = "Low Demand"
                     demand_class = "emerald"
+            else:
+                logger.debug(f"[HOME] No demand score for product {p.product_id} - using baseline")
             
             # Check stock
             if p.stock <= 10:
@@ -51,6 +75,7 @@ def home():
                 'stock': p.stock,
                 'demand_label': demand_label,
                 'demand_class': demand_class,
+                'demand_score': demand_score,  # Include for sorting
                 'price_change_pct': round(price_change, 1),
                 'category_id': p.category_id,
                 'image_url': p.image_url or ''
@@ -58,9 +83,14 @@ def home():
         
         # Get categories for filtering
         categories = Category.query.all()
+        logger.info(f"[HOME] Found {len(categories)} categories")
         
-        # Get featured products (first 4 by demand or stock)
-        featured = sorted(product_data, key=lambda x: x['stock'], reverse=True)[:4]
+        # Get featured products - sort by absolute price change (most dynamic first)
+        # This shows products with actual price movement, not just high stock
+        featured = sorted(product_data, key=lambda x: abs(x['price_change_pct']), reverse=True)[:4]
+        
+        logger.info(f"[HOME] Featured products: {[p['name'] for p in featured]}")
+        logger.info(f"[HOME] Price changes: {[p['price_change_pct'] for p in featured]}")
         
         return render_template(
             'home.html',
@@ -71,14 +101,16 @@ def home():
             tick_rate=current_app.config['SIMULATION_TICK_RATE']
         )
     except Exception as e:
-        # Fallback if database not ready
+        # Log the actual error instead of silently swallowing it
+        logger.error(f"[HOME] Error rendering homepage: {e}", exc_info=True)
         return render_template(
             'home.html',
             products=[],
             featured=[],
             categories=[],
             num_sim_users=current_app.config['NUM_SIMULATED_USERS'],
-            tick_rate=current_app.config['SIMULATION_TICK_RATE']
+            tick_rate=current_app.config['SIMULATION_TICK_RATE'],
+            error=str(e)
         )
 
 @main_bp.route('/status')

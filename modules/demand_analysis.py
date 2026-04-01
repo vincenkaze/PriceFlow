@@ -157,31 +157,47 @@ class DemandAnalyzer:
         return records
 
     def _prune_old_scores(self, product_ids: List[int]) -> None:
-        """Keep only the most recent score per product (optional cleanup)."""
+        """Keep only the most recent score per product (SQLite-compatible)."""
         if not product_ids:
             return
 
-        # Subquery to find latest per product
-        latest_subq = (
-            db.session.query(
-                DemandScore.product_id,
-                func.max(DemandScore.calculated_at).label("max_time"),
+        try:
+            # SQLite-compatible approach: get latest times per product, then delete older ones
+            # Step 1: Get the max calculated_at for each product
+            latest_times = (
+                db.session.query(
+                    DemandScore.product_id,
+                    func.max(DemandScore.calculated_at).label("max_time")
+                )
+                .filter(DemandScore.product_id.in_(product_ids))
+                .group_by(DemandScore.product_id)
+                .all()
             )
-            .filter(DemandScore.product_id.in_(product_ids))
-            .group_by(DemandScore.product_id)
-            .subquery()
-        )
 
-        # Delete everything older
-        db.session.query(DemandScore).filter(
-            DemandScore.product_id.in_(product_ids),
-            ~(
-                (DemandScore.product_id == latest_subq.c.product_id)
-                & (DemandScore.calculated_at == latest_subq.c.max_time)
-            ),
-        ).delete(synchronize_session=False)
+            if not latest_times:
+                return
 
-        db.session.commit()
+            # Step 2: Delete all but the latest for each product
+            # Process each product individually to avoid SQLite multi-table issues
+            for product_id, max_time in latest_times:
+                # Delete older records for this specific product
+                deleted = (
+                    db.session.query(DemandScore)
+                    .filter(
+                        DemandScore.product_id == product_id,
+                        DemandScore.calculated_at < max_time
+                    )
+                    .delete(synchronize_session='fetch')
+                )
+                if deleted > 0:
+                    print(f"[DEMAND] Pruned {deleted} old scores for product {product_id}")
+
+            db.session.commit()
+            print(f"[DEMAND] Pruning complete for {len(latest_times)} products")
+
+        except Exception as e:
+            print(f"[DEMAND] Pruning error (non-fatal): {e}")
+            db.session.rollback()
 
 # Singleton / global instance (your call)
 demand_analyzer = DemandAnalyzer(lookback_minutes=15)

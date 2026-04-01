@@ -133,11 +133,12 @@
         {% set hero_product = featured[0] if featured else None %}
         {% if hero_product %}
         <div class="inline-block px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold uppercase tracking-widest mb-6">
-          {{ hero_product.demand_label }}
+          {{ hero_product.demand_label | default('In Stock') }}
         </div>
         <h1 class="text-6xl lg:text-8xl font-bold tracking-tight mb-6 leading-[1.1]">
-          {{ hero_product.name.split()[0] }}<br/>
-          <span class="text-[#135bec]">{{ hero_product.name.split()[1:] | join(' ') if hero_product.name.split() | length > 1 else 'PRO' }}</span>
+          {% set name_parts = hero_product.name.split() %}
+          {{ name_parts[0] if name_parts else 'Product' }}<br/>
+          <span class="text-[#135bec]">{{ name_parts[1:] | join(' ') if name_parts | length > 1 else 'PRO' }}</span>
         </h1>
         <p class="text-xl text-[#94a3b8] mb-8 max-w-lg leading-relaxed">
           Dynamic pricing based on demand and stock. Experience real-time price adjustments powered by intelligent algorithms.
@@ -147,7 +148,7 @@
           {% if hero_product.price_change_pct != 0 %}
           <span class="text-xl text-[#94a3b8] line-through mb-1 base-price">${{ "%.2f"|format(hero_product.base_price) }}</span>
           <span class="price-change text-sm {% if hero_product.price_change_pct > 0 %}text-red-500{% else %}text-emerald-500{% endif %}">
-            {{ "%+"|format(hero_product.price_change_pct) if hero_product.price_change_pct > 0 else "" }}{{ hero_product.price_change_pct }}%
+            {% if hero_product.price_change_pct > 0 %}+{% endif %}{{ "%.1f"|format(hero_product.price_change_pct) }}%
           </span>
           {% endif %}
         </div>
@@ -160,7 +161,7 @@
         <div class="relative z-10 p-8">
           <div class="w-full aspect-square bg-[#11141b] rounded-2xl flex items-center justify-center overflow-hidden">
             {% if hero_product.image_url %}
-            <img src="{{ hero_product.image_url }}" alt="{{ hero_product.name }}" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); document.getElementById('hero-fallback').classList.remove('hidden');">
+            <img src="{{ hero_product.image_url | default('') }}" alt="{{ hero_product.name | default('Product') }}" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); document.getElementById('hero-fallback').classList.remove('hidden');">
             {% endif %}
             <svg id="hero-fallback" class="w-32 h-32 text-[#135bec]/30 {{ 'hidden' if hero_product.image_url else 'flex' }}" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24">
               <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
@@ -328,6 +329,21 @@
       </div>
     </div>
   </section>
+  
+  {% if error %}
+  <!-- Error Display -->
+  <section class="py-4 px-6 bg-red-500/10 border-t border-red-500/20">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex items-center gap-3 text-red-400">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <span class="font-medium">Notice:</span>
+        <span class="text-red-300">Unable to load product data. Please try refreshing the page.</span>
+      </div>
+    </div>
+  </section>
+  {% endif %}
 </main>
 
 <!-- Footer -->
