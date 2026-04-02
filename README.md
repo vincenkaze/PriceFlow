@@ -21,7 +21,7 @@ Inspired by real-world systems like Amazon or Uber, but simulation-only (no real
 - **Hardware:** Just a laptop—no GPU needed.
 
 ## Setup Instructions
-1. Clone: `git clone https://github.com/yourusername/intelligent-dynamic-pricing-system.git`
+1. Clone: `git clone https://github.com/vincenkaze/priceflow.git`
 2. Env: `python -m venv venv && source venv/bin/activate` (or `venv\Scripts\activate` on Windows)
 3. Install: `pip install -r requirements.txt`
 4. DB Init: `python database/seed.py` (creates tables and seeds data)
