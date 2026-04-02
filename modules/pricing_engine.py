@@ -95,23 +95,32 @@ class PricingEngine:
             new_price = old_price
             reason = "Stable"
 
-            # Heuristic rules - scaled for decayed scoring (scores in range 0-1000+)
-            # High demand (100+): Strong price increase for peak demand
-            if demand_score > 100 and stock_ratio < 0.4:
+            # Balanced pricing rules based on demand-stock balance
+            # Uses a 3-zone model: INCREASE, STABLE, DECREASE
+            # Demand thresholds scaled for decayed scoring (0-1000+ range)
+            
+            # Zone 1: INCREASE - High demand + Low stock
+            if demand_score > 80 and stock_ratio < 0.3:
                 new_price = min(product.base_price * 1.5, old_price * 1.08)
                 reason = "High demand + low stock"
-            # Low demand (<=10): Significant price cut for oversupply
-            elif demand_score <= 10 and stock_ratio > 0.7:
+            # Zone 2: INCREASE - Moderate-high demand + Adequate stock
+            elif demand_score > 60 and stock_ratio < 0.5:
+                new_price = min(product.base_price * 1.25, old_price * 1.05)
+                reason = "Rising demand"
+            
+            # Zone 3: DECREASE - Low demand + High stock
+            elif demand_score < 20 and stock_ratio > 0.6:
                 new_price = max(product.base_price * 0.7, old_price * 0.93)
                 reason = "Low demand + high stock"
-            # Moderate-high demand (50-100): Moderate price increase
-            elif demand_score > 50 and stock_ratio < 0.4:
-                new_price = min(product.base_price * 1.25, old_price * 1.05)
-                reason = "Rising demand + scarce stock"
-            # Very low demand (<=5): Slight price reduction for excess stock
-            elif demand_score <= 5 and stock_ratio > 0.8:
+            # Zone 4: DECREASE - Very low demand OR Excess stock
+            elif demand_score < 10 or stock_ratio > 0.8:
                 new_price = max(product.base_price * 0.85, old_price * 0.95)
-                reason = "Fading demand + excess stock"
+                reason = "Weak demand" if demand_score < 10 else "Excess stock"
+            
+            # Zone 5: STABLE - Everything else (no price change)
+            else:
+                reason = "Stable"
+                pass  # new_price stays as old_price
 
             new_price = round(new_price, 2)
 
