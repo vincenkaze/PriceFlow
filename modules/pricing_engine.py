@@ -1,5 +1,6 @@
 import time
 import threading
+import logging
 from datetime import datetime, timedelta
 from app.extensions import db
 from app.models import Product, PriceHistory, DemandScore
@@ -51,6 +52,21 @@ class PricingEngine:
             pid = score.product_id
             if pid not in demand_map:
                 demand_map[pid] = score.demand_score
+
+        # DEBUG: Log actual demand score range for calibration
+        # TODO: Remove after calibration is complete
+        scores = list(demand_map.values())
+        if scores:
+            score_min = min(scores)
+            score_max = max(scores)
+            score_avg = sum(scores) / len(scores)
+            # Count products in each threshold range (aligned with pricing heuristics)
+            tier_very_high = sum(1 for s in scores if s > 100)
+            tier_high = sum(1 for s in scores if 50 < s <= 100)
+            tier_mid = sum(1 for s in scores if 10 < s <= 50)
+            tier_low = sum(1 for s in scores if 5 < s <= 10)
+            tier_very_low = sum(1 for s in scores if s <= 5)
+            logging.debug(f"[DEMAND] Range: {score_min:.1f} - {score_max:.1f}, Avg: {score_avg:.1f} | Tiers: >100:{tier_very_high}, 51-100:{tier_high}, 11-50:{tier_mid}, 6-10:{tier_low}, <=5:{tier_very_low}")
 
         products = Product.query.all()
         updated = 0
