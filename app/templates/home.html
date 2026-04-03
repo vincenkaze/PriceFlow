@@ -132,8 +132,13 @@
       <div>
         {% set hero_product = featured[0] if featured else None %}
         {% if hero_product %}
-        <div class="inline-block px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold uppercase tracking-widest mb-6">
-          {{ hero_product.demand_label | default('In Stock') }}
+        <div class="inline-block px-3 py-1 rounded-full 
+          {% if hero_product.demand_label == 'High Demand' %}bg-red-500/10 border-red-500/20 text-red-500
+          {% elif hero_product.demand_label == 'Trending' %}bg-orange-500/10 border-orange-500/20 text-orange-500
+          {% elif hero_product.demand_label == 'Low Demand' %}bg-emerald-500/10 border-emerald-500/20 text-emerald-500
+          {% else %}bg-blue-500/10 border-blue-500/20 text-blue-500{% endif %}
+          text-xs font-bold uppercase tracking-widest mb-6">
+          {{ hero_product.demand_label }}
         </div>
         <h1 class="text-6xl lg:text-8xl font-bold tracking-tight mb-6 leading-[1.1]">
           {% set name_parts = hero_product.name.split() %}
@@ -202,9 +207,10 @@
         <a href="#marketplace" class="product-card group cursor-pointer block" data-product-id="{{ product.id }}">
           <div class="bg-[#11141b] rounded-lg overflow-hidden mb-4 aspect-square flex items-center justify-center relative transition-shadow duration-300">
             <span class="status-label absolute top-4 right-4 z-10 
-              {% if product.demand_class == 'red' %}bg-red-500/10 text-red-500 border-red-500/20
-              {% elif product.demand_class == 'orange' %}bg-orange-500/10 text-orange-500 border-orange-500/20
-              {% else %}bg-emerald-500/10 text-emerald-500 border-emerald-500/20{% endif %}
+              {% if product.demand_label == 'High Demand' %}bg-red-500/10 text-red-500 border-red-500/20
+              {% elif product.demand_label == 'Trending' %}bg-orange-500/10 text-orange-500 border-orange-500/20
+              {% elif product.demand_label == 'Low Demand' %}bg-blue-500/10 text-blue-500 border-blue-500/20
+              {% else %}bg-gray-500/10 text-gray-500 border-gray-500/20{% endif %}
               text-[10px] font-bold px-2 py-1 rounded border uppercase demand-label">
               {{ product.demand_label }}
             </span>
@@ -259,9 +265,10 @@
         <div class="product-card group cursor-pointer" data-category="{{ product.category_id }}" data-product-id="{{ product.id }}">
           <div class="relative aspect-square rounded-lg overflow-hidden bg-[#11141b] mb-5 transition-shadow duration-300">
             <span class="status-label absolute top-4 left-4 z-10 
-              {% if product.demand_class == 'red' %}bg-red-500/10 text-red-500 border-red-500/20
-              {% elif product.demand_class == 'orange' %}bg-orange-500/10 text-orange-500 border-orange-500/20
-              {% else %}bg-emerald-500/10 text-emerald-500 border-emerald-500/20{% endif %}
+              {% if product.demand_label == 'High Demand' %}bg-red-500/10 text-red-500 border-red-500/20
+              {% elif product.demand_label == 'Trending' %}bg-orange-500/10 text-orange-500 border-orange-500/20
+              {% elif product.demand_label == 'Low Demand' %}bg-blue-500/10 text-blue-500 border-blue-500/20
+              {% else %}bg-gray-500/10 text-gray-500 border-gray-500/20{% endif %}
               text-[10px] font-bold px-2 py-1 rounded uppercase border demand-label">
               {{ product.demand_label }}
             </span>

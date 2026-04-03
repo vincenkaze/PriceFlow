@@ -38,29 +38,23 @@ def home():
             demand = DemandScore.query.filter_by(product_id=p.product_id)\
                 .order_by(DemandScore.calculated_at.desc()).first()
             
-            demand_label = "In Stock"
-            demand_class = "emerald"
+            demand_label = "Stable"
             demand_score = 50  # Baseline score for products with no activity
             
             if demand:
                 score = demand.demand_score
                 demand_score = score
+                # Use actual demand score
                 if score >= 80:
                     demand_label = "High Demand"
-                    demand_class = "red"
                 elif score >= 60:
                     demand_label = "Trending"
-                    demand_class = "orange"
                 elif score <= 30:
                     demand_label = "Low Demand"
-                    demand_class = "emerald"
+                else:
+                    demand_label = "Stable"
             else:
                 logger.debug(f"[HOME] No demand score for product {p.product_id} - using baseline")
-            
-            # Check stock
-            if p.stock <= 10:
-                demand_label = "Low Stock"
-                demand_class = "red"
             
             # Calculate price change indicator
             price_change = 0
@@ -74,7 +68,6 @@ def home():
                 'base_price': p.base_price,
                 'stock': p.stock,
                 'demand_label': demand_label,
-                'demand_class': demand_class,
                 'demand_score': demand_score,  # Include for sorting
                 'price_change_pct': round(price_change, 1),
                 'category_id': p.category_id,
@@ -85,12 +78,11 @@ def home():
         categories = Category.query.all()
         logger.info(f"[HOME] Found {len(categories)} categories")
         
-        # Get featured products - sort by absolute price change (most dynamic first)
-        # This shows products with actual price movement, not just high stock
-        featured = sorted(product_data, key=lambda x: abs(x['price_change_pct']), reverse=True)[:4]
+        # Get featured products - sort by demand score (highest first) for hero section
+        featured = sorted(product_data, key=lambda x: x['demand_score'], reverse=True)[:4]
         
         logger.info(f"[HOME] Featured products: {[p['name'] for p in featured]}")
-        logger.info(f"[HOME] Price changes: {[p['price_change_pct'] for p in featured]}")
+        logger.info(f"[HOME] Demand scores: {[p['demand_score'] for p in featured]}")
         
         return render_template(
             'home.html',

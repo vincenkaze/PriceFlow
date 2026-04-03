@@ -53,9 +53,12 @@ class SimulationEngine:
         k = min(num_active, len(all_products))
         products = random.sample(all_products, k=k)
         
+        # Only 20% of users act per tick - keeps activity realistic
+        users_this_tick = random.sample(sim_users, k=max(1, int(len(sim_users) * 0.2)))
+        
         actions_this_tick = 0
 
-        for sim_user in sim_users:
+        for sim_user in users_this_tick:
             user_type = UserType.query.get(sim_user.type_id)
             if not user_type:
                 continue

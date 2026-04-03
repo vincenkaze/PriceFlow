@@ -25,10 +25,10 @@ class Config:
     AUTO_RESTOCK_AMOUNT = 50                    # how many units to add
     
     # === DEMAND DYNAMICS - Let demand rise AND fall ===
-    DEMAND_DECAY_RATE = 0.85                    # each minute older, multiply weight by this (0.85 = 15% decay/min)
+    DEMAND_DECAY_RATE = 0.60                    # each minute older, multiply weight by this (0.60 = 40% decay/min) - MUCH FASTER
     DEMAND_RECENT_MINUTES = 5                   # recent window for trend detection
-    DEMAND_INACTIVE_PENALTY = 10                # points lost when no activity in window
-    SIMULATOR_ACTIVITY_RATE = 0.4               # only 40% of products get attention per tick (system breathes)
+    DEMAND_INACTIVE_PENALTY = 20                # points lost when no activity in window
+    SIMULATOR_ACTIVITY_RATE = 0.2               # only 20% of products get attention per tick
     DEMAND_TREND_THRESHOLD = 1.2                # recent/older ratio to be considered "rising"
     
     # === PRICING DEFAULTS ===

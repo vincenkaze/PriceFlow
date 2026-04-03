@@ -160,7 +160,21 @@ class PricingEngine:
                 updated_products = []
                 for product in products:
                     if product.current_price != product.base_price:
-                        demand_label = 'HIGH DEMAND' if product.stock < 30 else ('TRENDING' if product.stock < 50 else 'STABLE')
+                        # Get latest demand score for this product
+                        demand = DemandScore.query.filter_by(product_id=product.product_id)\
+                            .order_by(DemandScore.calculated_at.desc()).first()
+                        demand_score = demand.demand_score if demand else 0
+                        
+                        # Label based on actual demand score, not stock
+                        if demand_score >= 80:
+                            demand_label = 'HIGH DEMAND'
+                        elif demand_score >= 60:
+                            demand_label = 'TRENDING'
+                        elif demand_score <= 30:
+                            demand_label = 'LOW DEMAND'
+                        else:
+                            demand_label = 'STABLE'
+                        
                         change_pct = ((product.current_price - product.base_price) / product.base_price) * 100
                         updated_products.append({
                             'product_id': product.product_id,

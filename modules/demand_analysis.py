@@ -22,7 +22,7 @@ class DemandAnalyzer:
     }
 
     # Decay factor: older actions count less
-    DECAY_RATE = Config.DEMAND_DECAY_RATE  # 0.85 per minute = 15% decay
+    DECAY_RATE = Config.DEMAND_DECAY_RATE  # 0.60 per minute = 40% decay
 
     def __init__(
         self,

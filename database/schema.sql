@@ -29,8 +29,8 @@ CREATE TABLE products (
     base_price DECIMAL(10,2) NOT NULL,
     current_price DECIMAL(10,2) NOT NULL,
     stock INTEGER NOT NULL CHECK(stock >= 0),
-    min_price DECIMAL(10,2),
-    max_price DECIMAL(10,2),
+    min_price DECIMAL(10,2) NOT NULL DEFAULT 0.0,
+    max_price DECIMAL(10,2) NOT NULL DEFAULT 99999.99,
     image_url TEXT DEFAULT '',
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -93,6 +93,7 @@ CREATE TABLE user_actions (
     product_id INTEGER NOT NULL,
     action_type TEXT NOT NULL CHECK(action_type IN ('view', 'cart', 'purchase')),
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CHECK (sim_user_id IS NOT NULL OR user_id IS NOT NULL),
     FOREIGN KEY (sim_user_id) REFERENCES simulated_users(sim_user_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (product_id) REFERENCES products(product_id)
