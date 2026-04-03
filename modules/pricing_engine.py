@@ -3,7 +3,7 @@ import threading
 import logging
 from datetime import datetime, timedelta
 from app.extensions import db
-from app.models import Product, PriceHistory, DemandScore
+from app.models import Product, PriceHistory, DemandScore, PricingRule
 from app.config import Config
 
 # Import WebSocket emitter (optional - graceful fallback)
@@ -36,6 +36,43 @@ class PricingEngine:
                 except Exception as e:
                     print(f"[PRICE] Error: {e}")
                 time.sleep(self.interval)
+
+    def _get_pricing_rules(self, product):
+        """Fetch pricing rules - first try category-specific, then global"""
+        # Try category-specific rule first
+        rule = PricingRule.query.filter(
+            PricingRule.category_id == product.category_id,
+            PricingRule.is_active == True
+        ).first()
+        
+        if not rule:
+            # Fall back to global rule
+            rule = PricingRule.query.filter(
+                PricingRule.is_global == True,
+                PricingRule.is_active == True
+            ).first()
+        
+        # Return defaults if no rule found
+        if not rule:
+            return {
+                'demand_threshold_high': 80,
+                'demand_threshold_low': 20,
+                'stock_threshold_low': 10,
+                'price_increase_pct': 5.0,
+                'price_decrease_pct': 5.0,
+                'min_price_pct': 0.7,
+                'max_price_pct': 1.5
+            }
+        
+        return {
+            'demand_threshold_high': rule.demand_threshold_high,
+            'demand_threshold_low': rule.demand_threshold_low,
+            'stock_threshold_low': rule.stock_threshold_low,
+            'price_increase_pct': rule.price_increase_pct,
+            'price_decrease_pct': rule.price_decrease_pct,
+            'min_price_pct': rule.min_price_pct,
+            'max_price_pct': rule.max_price_pct
+        }
 
     def _update_prices(self):
         # Get the most recent demand score for each product
@@ -91,31 +128,40 @@ class PricingEngine:
             demand_score = demand_map.get(product.product_id, 0)
             stock_ratio = product.stock / 100.0 if product.stock > 0 else 0.0
 
+            # Get pricing rules from database
+            rules = self._get_pricing_rules(product)
+            demand_high = rules['demand_threshold_high']
+            demand_low = rules['demand_threshold_low']
+            stock_low_threshold = rules['stock_threshold_low']
+            increase_pct = rules['price_increase_pct'] / 100.0
+            decrease_pct = rules['price_decrease_pct'] / 100.0
+            min_price_pct = rules['min_price_pct']
+            max_price_pct = rules['max_price_pct']
+
             old_price = product.current_price
             new_price = old_price
             reason = "Stable"
 
             # Balanced pricing rules based on demand-stock balance
-            # Uses a 3-zone model: INCREASE, STABLE, DECREASE
-            # Demand thresholds scaled for decayed scoring (0-1000+ range)
+            # Uses rules from database
             
             # Zone 1: INCREASE - High demand + Low stock
-            if demand_score > 80 and stock_ratio < 0.3:
-                new_price = min(product.base_price * 1.5, old_price * 1.08)
+            if demand_score > demand_high and stock_ratio < 0.3:
+                new_price = min(product.base_price * max_price_pct, old_price * (1 + increase_pct))
                 reason = "High demand + low stock"
             # Zone 2: INCREASE - Moderate-high demand + Adequate stock
-            elif demand_score > 60 and stock_ratio < 0.5:
-                new_price = min(product.base_price * 1.25, old_price * 1.05)
+            elif demand_score > (demand_high * 0.75) and stock_ratio < 0.5:
+                new_price = min(product.base_price * (min_price_pct + max_price_pct) / 2, old_price * (1 + increase_pct * 0.5))
                 reason = "Rising demand"
             
             # Zone 3: DECREASE - Low demand + High stock
-            elif demand_score < 20 and stock_ratio > 0.6:
-                new_price = max(product.base_price * 0.7, old_price * 0.93)
+            elif demand_score < demand_low and stock_ratio > 0.6:
+                new_price = max(product.base_price * min_price_pct, old_price * (1 - decrease_pct))
                 reason = "Low demand + high stock"
             # Zone 4: DECREASE - Very low demand OR Excess stock
-            elif demand_score < 10 or stock_ratio > 0.8:
-                new_price = max(product.base_price * 0.85, old_price * 0.95)
-                reason = "Weak demand" if demand_score < 10 else "Excess stock"
+            elif demand_score < (demand_low * 0.5) or stock_ratio > 0.8:
+                new_price = max(product.base_price * (min_price_pct + 0.15), old_price * (1 - decrease_pct * 0.5))
+                reason = "Weak demand" if demand_score < (demand_low * 0.5) else "Excess stock"
             
             # Zone 5: STABLE - Everything else (no price change)
             else:

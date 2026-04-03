@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from app import create_app
 from app.extensions import db
-from app.models import Category, UserType, Product, SimulatedUser
+from app.models import Category, UserType, Product, SimulatedUser, PricingRule
 import random
 
 #  STEP 1: Execute your original schema.sql directly (pure Python, no CLI needed)
@@ -120,6 +120,23 @@ with app.app_context():
         db.session.add(sim)
     db.session.commit()
     print(f" Created 200 simulated users with personalities!")
+
+    # 5. Default Pricing Rules
+    global_rule = PricingRule(
+        rule_name="Default Global Rule",
+        demand_threshold_high=80,
+        demand_threshold_low=20,
+        stock_threshold_low=10,
+        price_increase_pct=5.0,
+        price_decrease_pct=5.0,
+        min_price_pct=0.7,
+        max_price_pct=1.5,
+        is_global=True,
+        is_active=True
+    )
+    db.session.add(global_rule)
+    db.session.commit()
+    print(" Created default pricing rule")
 
     print("\n SEED COMPLETE — The system is now FULLY ALIVE!")
     print("Restart with: python run.py")

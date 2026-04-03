@@ -107,3 +107,18 @@ class AdminAction(db.Model):
     action_type = db.Column(db.String(50), nullable=False)
     description = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+class PricingRule(db.Model):
+    __tablename__ = 'pricing_rules'
+    rule_id = db.Column(db.Integer, primary_key=True)
+    rule_name = db.Column(db.String(100), nullable=False)
+    demand_threshold_high = db.Column(db.Integer, default=80)
+    demand_threshold_low = db.Column(db.Integer, default=20)
+    stock_threshold_low = db.Column(db.Integer, default=10)
+    price_increase_pct = db.Column(db.Float, default=5.0)
+    price_decrease_pct = db.Column(db.Float, default=5.0)
+    min_price_pct = db.Column(db.Float, default=0.7)
+    max_price_pct = db.Column(db.Float, default=1.5)
+    is_global = db.Column(db.Boolean, default=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.category_id'))
+    is_active = db.Column(db.Boolean, default=True)
