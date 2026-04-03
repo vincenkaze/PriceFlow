@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, current_app, jsonify
+from flask import Blueprint, render_template, current_app, jsonify, request
 from datetime import datetime
 from app.extensions import db
 from app.models import Product, Category, DemandScore
@@ -11,99 +11,110 @@ def home():
     import logging
     logger = logging.getLogger(__name__)
     
-    try:
-        # Log DB path for debugging
-        db_uri = current_app.config.get('SQLALCHEMY_DATABASE_URI', 'unknown')
-        logger.info(f"[HOME] Database: {db_uri}")
-        
-        # Get products with their latest demand scores
-        products = Product.query.all()
-        logger.info(f"[HOME] Found {len(products)} products in database")
-        
-        if not products:
-            logger.warning("[HOME] No products found! Database may be empty.")
-            return render_template(
-                'home.html',
-                products=[],
-                featured=[],
-                categories=[],
-                num_sim_users=current_app.config['NUM_SIMULATED_USERS'],
-                tick_rate=current_app.config['SIMULATION_TICK_RATE'],
-                error="No products in database - run seed script"
-            )
-        
-        product_data = []
-        for p in products:
-            # Get latest demand score
-            demand = DemandScore.query.filter_by(product_id=p.product_id)\
-                .order_by(DemandScore.calculated_at.desc()).first()
-            
-            demand_label = "Stable"
-            demand_score = 50  # Baseline score for products with no activity
-            
-            if demand:
-                score = demand.demand_score
-                demand_score = score
-                # Use actual demand score
-                if score >= 80:
-                    demand_label = "High Demand"
-                elif score >= 60:
-                    demand_label = "Trending"
-                elif score <= 30:
-                    demand_label = "Low Demand"
-                else:
-                    demand_label = "Stable"
-            else:
-                logger.debug(f"[HOME] No demand score for product {p.product_id} - using baseline")
-            
-            # Calculate price change indicator
-            price_change = 0
-            if p.base_price > 0:
-                price_change = ((p.current_price - p.base_price) / p.base_price) * 100
-            
-            product_data.append({
-                'id': p.product_id,
-                'name': p.name,
-                'current_price': p.current_price,
-                'base_price': p.base_price,
-                'stock': p.stock,
-                'demand_label': demand_label,
-                'demand_score': demand_score,  # Include for sorting
-                'price_change_pct': round(price_change, 1),
-                'category_id': p.category_id,
-                'image_url': p.image_url or ''
-            })
-        
-        # Get categories for filtering
-        categories = Category.query.all()
-        logger.info(f"[HOME] Found {len(categories)} categories")
-        
-        # Get featured products - sort by demand score (highest first) for hero section
-        featured = sorted(product_data, key=lambda x: x['demand_score'], reverse=True)[:4]
-        
-        logger.info(f"[HOME] Featured products: {[p['name'] for p in featured]}")
-        logger.info(f"[HOME] Demand scores: {[p['demand_score'] for p in featured]}")
-        
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    
+    categories = Category.query.all()
+    
+    pagination = Product.query.order_by(Product.product_id).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    products_page = pagination.items
+    
+    if not products_page and page == 1:
+        logger.warning("[HOME] No products found!")
         return render_template(
             'home.html',
-            products=product_data,
-            featured=featured,
-            categories=categories,
-            num_sim_users=current_app.config['NUM_SIMULATED_USERS'],
-            tick_rate=current_app.config['SIMULATION_TICK_RATE']
-        )
-    except Exception as e:
-        # Log the actual error instead of silently swallowing it
-        logger.error(f"[HOME] Error rendering homepage: {e}", exc_info=True)
-        return render_template(
-            'home.html',
-            products=[],
-            featured=[],
-            categories=[],
+            products=[], featured=[], categories=[],
             num_sim_users=current_app.config['NUM_SIMULATED_USERS'],
             tick_rate=current_app.config['SIMULATION_TICK_RATE'],
-            error=str(e)
+            pagination=None, error="No products in database - run seed script"
         )
+    
+    product_ids = [p.product_id for p in products_page]
+    latest_scores = db.session.query(
+        DemandScore.product_id, DemandScore.demand_score,
+        DemandScore.calculated_at
+    ).filter(
+        DemandScore.product_id.in_(product_ids)
+    ).distinct(DemandScore.product_id).all()
+    
+    demand_map = {}
+    for pid, score, calc_at in latest_scores:
+        if pid not in demand_map or calc_at > demand_map[pid][1]:
+            demand_map[pid] = (score, calc_at)
+    
+    product_data = []
+    for p in products_page:
+        score, calc_at = demand_map.get(p.product_id, (50, None))
+        demand_label = "Stable"
+        if score >= 80:
+            demand_label = "High Demand"
+        elif score >= 60:
+            demand_label = "Trending"
+        elif score <= 30:
+            demand_label = "Low Demand"
+        
+        price_change = ((p.current_price - p.base_price) / p.base_price * 100) if p.base_price > 0 else 0
+        product_data.append({
+            'id': p.product_id,
+            'name': p.name,
+            'current_price': p.current_price,
+            'base_price': p.base_price,
+            'stock': p.stock,
+            'demand_label': demand_label,
+            'demand_score': score,
+            'price_change_pct': round(price_change, 1),
+            'category_id': p.category_id,
+            'image_url': p.image_url or ''
+        })
+    
+    all_products = Product.query.all()
+    all_scores = db.session.query(
+        DemandScore.product_id, DemandScore.demand_score
+    ).filter(DemandScore.product_id.in_([p.product_id for p in all_products]))\
+     .distinct(DemandScore.product_id).all()
+    score_map = {pid: score for pid, score in all_scores}
+    
+    featured_data = []
+    for p in all_products:
+        score = score_map.get(p.product_id, 50)
+        price_change = ((p.current_price - p.base_price) / p.base_price * 100) if p.base_price > 0 else 0
+        label = "Stable"
+        if score >= 80: label = "High Demand"
+        elif score >= 60: label = "Trending"
+        elif score <= 30: label = "Low Demand"
+        featured_data.append({
+            'id': p.product_id, 'name': p.name,
+            'current_price': p.current_price, 'base_price': p.base_price,
+            'stock': p.stock, 'demand_label': label,
+            'demand_score': score,
+            'price_change_pct': round(price_change, 1),
+            'category_id': p.category_id, 'image_url': p.image_url or ''
+        })
+    featured = sorted(featured_data, key=lambda x: x['demand_score'], reverse=True)[:4]
+    
+    pagination_info = {
+        'page': page,
+        'per_page': per_page,
+        'total': pagination.total,
+        'pages': pagination.pages,
+        'has_prev': pagination.has_prev,
+        'has_next': pagination.has_next,
+        'prev_num': pagination.prev_num,
+        'next_num': pagination.next_num
+    }
+    
+    return render_template(
+        'home.html',
+        products=product_data,
+        featured=featured,
+        categories=categories,
+        num_sim_users=current_app.config['NUM_SIMULATED_USERS'],
+        tick_rate=current_app.config['SIMULATION_TICK_RATE'],
+        pagination=pagination_info,
+        error=None
+    )
 
 @main_bp.route('/status')
 def status():
