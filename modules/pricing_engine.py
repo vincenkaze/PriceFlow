@@ -172,26 +172,26 @@ class PricingEngine:
             # Balanced pricing rules based on demand-stock balance
             # Uses rules from database
             
-            # Zone 1: INCREASE - High demand + Low stock
-            if demand_score > demand_high and stock_ratio < stock_low:
-                new_price = min(product.base_price * max_price_pct, old_price * (1 + increase_pct))
-                reason = "High demand + low stock"
+            # Zone 1: INCREASE - Strong demand + decent stock (positive signal)
+            if demand_score > (demand_high * 0.75) and stock_ratio < stock_high:
+                new_price = min(product.base_price * max_price_pct, old_price * (1 + increase_pct * 0.5))
+                reason = "High demand"
                 zone_counts["Zone 1 - High demand+low stock"] += 1
-            # Zone 2: INCREASE - Moderate-high demand + Adequate stock
-            elif demand_score > (demand_high * 0.75) and stock_ratio < (stock_low * 1.67):
-                new_price = min(product.base_price * mid_price_pct, old_price * (1 + increase_pct * 0.5))
+            # Zone 2: INCREASE - Rising demand
+            elif demand_score > (demand_high * 0.5) and stock_ratio < stock_high:
+                new_price = min(product.base_price * mid_price_pct, old_price * (1 + increase_pct * 0.25))
                 reason = "Rising demand"
                 zone_counts["Zone 2 - Rising"] += 1
             
-            # Zone 3: DECREASE - Low demand + High stock
-            elif demand_score < demand_low and stock_ratio > stock_high:
-                new_price = max(product.base_price * min_price_pct, old_price * (1 - decrease_pct))
-                reason = "Low demand + high stock"
+            # Zone 3: DECREASE - Very weak demand + very high stock (BOTH extreme)
+            elif demand_score < (demand_low * 0.2) and stock_ratio > (stock_excess * 0.98):
+                new_price = max(product.base_price * min_price_pct, old_price * (1 - decrease_pct * 0.5))
+                reason = "Weak demand + excess stock"
                 zone_counts["Zone 3 - Low demand+high stock"] += 1
-            # Zone 4: DECREASE - Very low demand OR Excess stock
-            elif demand_score < (demand_low * 0.5) or stock_ratio > stock_excess:
-                new_price = max(product.base_price * min_aggressive_pct, old_price * (1 - decrease_pct * 1.5))
-                reason = "Weak demand" if demand_score < (demand_low * 0.5) else "Excess stock"
+            # Zone 4: DECREASE - Critically low demand OR critically excess stock (only in extreme cases)
+            elif demand_score < (demand_low * 0.1) or stock_ratio > 0.95:
+                new_price = max(product.base_price * min_aggressive_pct, old_price * (1 - decrease_pct * 0.5))
+                reason = "Critical" if demand_score < (demand_low * 0.1) else "Excess stock"
                 zone_counts["Zone 4 - Weak/Excess"] += 1
             
             # Zone 5: STABLE - Everything else (no price change)
