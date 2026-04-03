@@ -58,8 +58,12 @@ class PricingEngine:
                 'demand_threshold_high': 80,
                 'demand_threshold_low': 20,
                 'stock_threshold_low': 10,
+                'stock_threshold_high': 60,
+                'stock_threshold_excess': 80,
                 'price_increase_pct': 5.0,
                 'price_decrease_pct': 5.0,
+                'price_mid_pct': 1.1,
+                'price_min_aggressive_pct': 0.65,
                 'min_price_pct': 0.7,
                 'max_price_pct': 1.5
             }
@@ -68,8 +72,12 @@ class PricingEngine:
             'demand_threshold_high': rule.demand_threshold_high,
             'demand_threshold_low': rule.demand_threshold_low,
             'stock_threshold_low': rule.stock_threshold_low,
+            'stock_threshold_high': 60,
+            'stock_threshold_excess': 80,
             'price_increase_pct': rule.price_increase_pct,
             'price_decrease_pct': rule.price_decrease_pct,
+            'price_mid_pct': rule.price_mid_pct,
+            'price_min_aggressive_pct': rule.price_min_aggressive_pct,
             'min_price_pct': rule.min_price_pct,
             'max_price_pct': rule.max_price_pct
         }
@@ -132,7 +140,9 @@ class PricingEngine:
             rules = self._get_pricing_rules(product)
             demand_high = rules['demand_threshold_high']
             demand_low = rules['demand_threshold_low']
-            stock_low_threshold = rules['stock_threshold_low']
+            stock_low = rules['stock_threshold_low'] / 100.0
+            stock_high = rules['stock_threshold_high'] / 100.0
+            stock_excess = rules['stock_threshold_excess'] / 100.0
             increase_pct = rules['price_increase_pct'] / 100.0
             decrease_pct = rules['price_decrease_pct'] / 100.0
             min_price_pct = rules['min_price_pct']
@@ -148,20 +158,20 @@ class PricingEngine:
             # Uses rules from database
             
             # Zone 1: INCREASE - High demand + Low stock
-            if demand_score > demand_high and stock_ratio < 0.3:
+            if demand_score > demand_high and stock_ratio < stock_low:
                 new_price = min(product.base_price * max_price_pct, old_price * (1 + increase_pct))
                 reason = "High demand + low stock"
             # Zone 2: INCREASE - Moderate-high demand + Adequate stock
-            elif demand_score > (demand_high * 0.75) and stock_ratio < 0.5:
+            elif demand_score > (demand_high * 0.75) and stock_ratio < (stock_low * 1.67):
                 new_price = min(product.base_price * mid_price_pct, old_price * (1 + increase_pct * 0.5))
                 reason = "Rising demand"
             
             # Zone 3: DECREASE - Low demand + High stock
-            elif demand_score < demand_low and stock_ratio > 0.6:
+            elif demand_score < demand_low and stock_ratio > stock_high:
                 new_price = max(product.base_price * min_price_pct, old_price * (1 - decrease_pct))
                 reason = "Low demand + high stock"
             # Zone 4: DECREASE - Very low demand OR Excess stock
-            elif demand_score < (demand_low * 0.5) or stock_ratio > 0.8:
+            elif demand_score < (demand_low * 0.5) or stock_ratio > stock_excess:
                 new_price = max(product.base_price * min_aggressive_pct, old_price * (1 - decrease_pct * 1.5))
                 reason = "Weak demand" if demand_score < (demand_low * 0.5) else "Excess stock"
             
