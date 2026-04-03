@@ -142,6 +142,16 @@ class DemandAnalyzer:
         )
         active_pids = [row[0] for row in active_pids_query.all()]
 
+        # DIAGNOSTIC: Check how many products are "active" each tick
+        total_products_count = Product.query.count()
+        active_count = len(active_pids)
+        inactive_count = total_products_count - active_count
+
+        import logging as demolog
+        demolog.debug(f"[DEMAND] Active: {active_count}/{total_products_count} | Inactive: {inactive_count}")
+        if active_count == total_products_count:
+            demolog.warning(f"[DEMAND] ALL {active_count} products have actions -- sim is too dense")
+
         if not active_pids:
             print("[DEMAND] No active products in window - skipping refresh")
             return []

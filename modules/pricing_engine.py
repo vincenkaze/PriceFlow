@@ -98,6 +98,17 @@ class PricingEngine:
             if pid not in demand_map:
                 demand_map[pid] = score.demand_score
 
+        # DIAGNOSTIC: Check demand saturation
+        total_products_count = Product.query.count()
+        active_products = len(demand_map)
+        if total_products_count > 0:
+            saturation_pct = (active_products / total_products_count) * 100
+            if saturation_pct == 100:
+                logging.warning(f"[PRICE] ALL {active_products} products have demand scores -- sim is oversaturating")
+            elif saturation_pct > 80:
+                logging.warning(f"[PRICE] {saturation_pct:.0f}% products active ({active_products}/{total_products_count})")
+            logging.debug(f"[PRICE] Demand saturation: {active_products}/{total_products_count} ({saturation_pct:.1f}%)")
+
         # DEBUG: Log actual demand score range for calibration
         # TODO: Remove after calibration is complete
         scores = list(demand_map.values())
@@ -116,6 +127,10 @@ class PricingEngine:
         products = Product.query.all()
         updated = 0
         restocked = []
+
+        # Zone distribution tracking
+        zone_counts = {"Zone 1 - High demand+low stock": 0, "Zone 2 - Rising": 0,
+                       "Zone 3 - Low demand+high stock": 0, "Zone 4 - Weak/Excess": 0, "Zone 5 - Stable": 0}
 
         for product in products:
             # ================== AUTO RESTOCK ==================
@@ -161,23 +176,28 @@ class PricingEngine:
             if demand_score > demand_high and stock_ratio < stock_low:
                 new_price = min(product.base_price * max_price_pct, old_price * (1 + increase_pct))
                 reason = "High demand + low stock"
+                zone_counts["Zone 1 - High demand+low stock"] += 1
             # Zone 2: INCREASE - Moderate-high demand + Adequate stock
             elif demand_score > (demand_high * 0.75) and stock_ratio < (stock_low * 1.67):
                 new_price = min(product.base_price * mid_price_pct, old_price * (1 + increase_pct * 0.5))
                 reason = "Rising demand"
+                zone_counts["Zone 2 - Rising"] += 1
             
             # Zone 3: DECREASE - Low demand + High stock
             elif demand_score < demand_low and stock_ratio > stock_high:
                 new_price = max(product.base_price * min_price_pct, old_price * (1 - decrease_pct))
                 reason = "Low demand + high stock"
+                zone_counts["Zone 3 - Low demand+high stock"] += 1
             # Zone 4: DECREASE - Very low demand OR Excess stock
             elif demand_score < (demand_low * 0.5) or stock_ratio > stock_excess:
                 new_price = max(product.base_price * min_aggressive_pct, old_price * (1 - decrease_pct * 1.5))
                 reason = "Weak demand" if demand_score < (demand_low * 0.5) else "Excess stock"
+                zone_counts["Zone 4 - Weak/Excess"] += 1
             
             # Zone 5: STABLE - Everything else (no price change)
             else:
                 reason = "Stable"
+                zone_counts["Zone 5 - Stable"] += 1
                 pass  # new_price stays as old_price
 
             new_price = round(new_price, 2)
@@ -199,6 +219,9 @@ class PricingEngine:
                 updated += 1
 
         db.session.commit()
+
+        # Log zone distribution
+        logging.debug(f"[PRICE] Zone distribution: {zone_counts}")
 
         # Emit restock events if any products were restocked
         if restocked:
