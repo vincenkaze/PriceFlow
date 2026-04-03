@@ -9,7 +9,7 @@ app = create_app()
 if __name__ == '__main__':
     print("\n Starting Intelligent Dynamic Pricing System...")
     print("   200 Optimists, Pessimists, Bargain Hunters & Impulse Buyers are now feral")
-    print("   Visit → http://127.0.0.1:5000")
+    print("   Visit http://127.0.0.1:5000")
 
     # Start engines safely
     with app.app_context():

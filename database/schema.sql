@@ -77,6 +77,8 @@ CREATE TABLE pricing_rules (
     stock_threshold_low INTEGER DEFAULT 10,
     price_increase_pct REAL DEFAULT 5.0,
     price_decrease_pct REAL DEFAULT 5.0,
+    price_mid_pct REAL DEFAULT 1.1,
+    price_min_aggressive_pct REAL DEFAULT 0.65,
     min_price_pct REAL DEFAULT 0.7,
     max_price_pct REAL DEFAULT 1.5,
     is_global BOOLEAN DEFAULT 1,

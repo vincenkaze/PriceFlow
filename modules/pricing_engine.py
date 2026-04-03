@@ -137,6 +137,8 @@ class PricingEngine:
             decrease_pct = rules['price_decrease_pct'] / 100.0
             min_price_pct = rules['min_price_pct']
             max_price_pct = rules['max_price_pct']
+            mid_price_pct = rules.get('price_mid_pct', (min_price_pct + max_price_pct) / 2)
+            min_aggressive_pct = rules.get('price_min_aggressive_pct', min_price_pct * 0.95)
 
             old_price = product.current_price
             new_price = old_price
@@ -151,7 +153,7 @@ class PricingEngine:
                 reason = "High demand + low stock"
             # Zone 2: INCREASE - Moderate-high demand + Adequate stock
             elif demand_score > (demand_high * 0.75) and stock_ratio < 0.5:
-                new_price = min(product.base_price * (min_price_pct + max_price_pct) / 2, old_price * (1 + increase_pct * 0.5))
+                new_price = min(product.base_price * mid_price_pct, old_price * (1 + increase_pct * 0.5))
                 reason = "Rising demand"
             
             # Zone 3: DECREASE - Low demand + High stock
@@ -160,7 +162,7 @@ class PricingEngine:
                 reason = "Low demand + high stock"
             # Zone 4: DECREASE - Very low demand OR Excess stock
             elif demand_score < (demand_low * 0.5) or stock_ratio > 0.8:
-                new_price = max(product.base_price * (min_price_pct + 0.15), old_price * (1 - decrease_pct * 0.5))
+                new_price = max(product.base_price * min_aggressive_pct, old_price * (1 - decrease_pct * 1.5))
                 reason = "Weak demand" if demand_score < (demand_low * 0.5) else "Excess stock"
             
             # Zone 5: STABLE - Everything else (no price change)

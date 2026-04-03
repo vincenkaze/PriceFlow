@@ -117,6 +117,8 @@ class PricingRule(db.Model):
     stock_threshold_low = db.Column(db.Integer, default=10)
     price_increase_pct = db.Column(db.Float, default=5.0)
     price_decrease_pct = db.Column(db.Float, default=5.0)
+    price_mid_pct = db.Column(db.Float, default=1.1)
+    price_min_aggressive_pct = db.Column(db.Float, default=0.65)
     min_price_pct = db.Column(db.Float, default=0.7)
     max_price_pct = db.Column(db.Float, default=1.5)
     is_global = db.Column(db.Boolean, default=True)

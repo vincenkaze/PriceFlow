@@ -129,6 +129,8 @@ with app.app_context():
         stock_threshold_low=10,
         price_increase_pct=5.0,
         price_decrease_pct=5.0,
+        price_mid_pct=1.1,
+        price_min_aggressive_pct=0.65,
         min_price_pct=0.7,
         max_price_pct=1.5,
         is_global=True,
