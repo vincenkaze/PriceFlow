@@ -15,7 +15,7 @@ Key Features:
 Inspired by real-world systems like Amazon or Uber, but simulation-only (no real payments or customers).
 
 ## Tech Stack
-- **Backend:** Python 3, Flask (or Django)
+- **Backend:** Python 3, Flask
 - **DB:** SQLite/MySQL (schema included)
 - **Libs:** NumPy, Pandas, Scikit-Learn, Matplotlib
 - **Hardware:** Just a laptop—no GPU needed.
