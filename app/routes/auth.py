@@ -28,7 +28,7 @@ def login():
         else:
             flash("Invalid username or password", "danger")
     
-    return render_template('auth/login.html')
+    return render_template('auth/login.html', admin_login_url=url_for('admin.login'))
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])

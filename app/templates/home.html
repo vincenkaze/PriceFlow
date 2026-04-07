@@ -118,6 +118,8 @@
     <div class="flex items-center gap-6">
       {% if session.get('admin_logged_in') %}
       <a href="/admin/dashboard" class="text-sm text-[#94a3b8] hover:text-white transition-colors">Admin</a>
+      {% elif not current_user.is_authenticated %}
+      <a href="{{ url_for('admin.login') }}" class="text-sm text-[#94a3b8] hover:text-white transition-colors">Admin</a>
       {% endif %}
       
       <!-- Profile Dropdown -->

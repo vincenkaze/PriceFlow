@@ -238,6 +238,10 @@
         <button type="submit" class="btn">Sign In</button>
       </form>
 
+      <p class="text-center text-gray-400 text-sm mt-4">
+        Admin? <a href="{{ admin_login_url }}" class="text-primary hover:underline">Login here</a>
+      </p>
+
       <div class="footer">
         <a href="{{ url_for('auth.register') }}"><span class="material-symbols-outlined">person_add</span>Create Account</a>
         <span class="dot"></span>
