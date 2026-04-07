@@ -119,8 +119,40 @@
       {% if session.get('admin_logged_in') %}
       <a href="/admin/dashboard" class="text-sm text-[#94a3b8] hover:text-white transition-colors">Admin</a>
       {% endif %}
-      <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-[#135bec] to-purple-500 overflow-hidden cursor-pointer border border-white/10 hover:ring-2 hover:ring-[#135bec]/50 transition-all">
-        <div class="w-full h-full flex items-center justify-center text-xs">PF</div>
+      
+      <!-- Profile Dropdown -->
+      <div class="relative" id="profile-dropdown">
+        <button id="profile-btn" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+            {% if current_user.is_authenticated %}
+              {{ current_user.username[:2]|upper }}
+            {% else %}
+              PF
+            {% endif %}
+          </div>
+          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        
+        <div id="profile-menu" class="hidden absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
+          {% if current_user.is_authenticated %}
+            <div class="px-4 py-2 border-b border-gray-700">
+              <p class="text-white font-medium">{{ current_user.full_name or current_user.username }}</p>
+              <p class="text-gray-400 text-xs capitalize">{{ current_user.role }}</p>
+            </div>
+            {% if current_user.role == 'admin' %}
+              <a href="{{ url_for('admin.dashboard') }}" class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white">Admin Dashboard</a>
+            {% else %}
+              <a href="{{ url_for('orders.order_history') }}" class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white">My Orders</a>
+            {% endif %}
+            <a href="{{ url_for('cart.view_cart') }}" class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white">Shopping Cart</a>
+            <a href="{{ url_for('auth.logout') }}" class="block px-4 py-2 text-red-400 hover:bg-gray-700 hover:text-red-300">Logout</a>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}" class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white">Login</a>
+            <a href="{{ url_for('auth.register') }}" class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white">Sign Up</a>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
@@ -633,5 +665,20 @@ document.querySelectorAll('.product-card[data-product-id]').forEach(card => {
     }
   });
 });
+
+// ================== Profile Dropdown Toggle ==================
+const profileBtn = document.getElementById('profile-btn');
+const profileMenu = document.getElementById('profile-menu');
+
+if (profileBtn && profileMenu) {
+  profileBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    profileMenu.classList.toggle('hidden');
+  });
+  
+  document.addEventListener('click', () => {
+    profileMenu.classList.add('hidden');
+  });
+}
 </script>
 {% endblock %}
