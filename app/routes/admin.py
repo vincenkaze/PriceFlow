@@ -1,7 +1,10 @@
 import os
 from flask import Blueprint, render_template, redirect, url_for, request, session, flash, current_app
+from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime
 from functools import wraps
+from app.extensions import db
+from app.models import User, Admin
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -32,6 +35,13 @@ def login():
         if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
             session.permanent = True
             session['admin_logged_in'] = True
+            
+            admin = Admin.query.filter_by(username=username).first()
+            if admin and admin.user_id:
+                user = User.query.get(admin.user_id)
+                if user:
+                    login_user(user)
+            
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('admin.dashboard'))
         else:
@@ -43,6 +53,7 @@ def login():
 @admin_bp.route('/logout')
 @admin_required
 def logout():
+    logout_user()
     session.pop('admin_logged_in', None)
     return redirect(url_for('main.home'))
 

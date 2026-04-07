@@ -65,6 +65,9 @@ class Admin(db.Model):
     email = db.Column(db.String(120))
     role = db.Column(db.String(20), default='admin')
     last_login = db.Column(db.DateTime)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=True)
+
+    user = db.relationship('User', foreign_keys=[user_id], backref='admin_account')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
