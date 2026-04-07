@@ -17,7 +17,7 @@
         }
     }
 
-    function renderTrendChart(products) {
+    function renderTrendChart(products, selectedId) {
         const canvas = document.getElementById('trendChart');
         if (!canvas) {
             console.warn('[Charts] Canvas not found');
@@ -33,7 +33,7 @@
             trendChart.destroy();
         }
 
-        const product = products[0];
+        const product = products.find(p => p.id === selectedId) || products[0];
         const chartData = product.chart_data;
 
         if (!chartData.raw_points || chartData.raw_points.length < 3) {
@@ -154,13 +154,24 @@
 
     async function initTrendCharts() {
         const products = await loadTrendData();
-        renderTrendChart(products);
+        window._cachedTrendProducts = products;
+        
+        const select = document.getElementById('trendProductSelect');
+        const defaultId = select ? parseInt(select.value) : null;
+        
+        renderTrendChart(products, defaultId);
         renderProductTable(products);
+
+        select?.addEventListener('change', (e) => {
+            const selectedId = parseInt(e.target.value);
+            renderTrendChart(products, selectedId);
+        });
 
         if (refreshTimer) clearInterval(refreshTimer);
         refreshTimer = setInterval(async () => {
             const newData = await loadTrendData();
-            renderTrendChart(newData);
+            window._cachedTrendProducts = newData;
+            renderTrendChart(newData, defaultId);
             renderProductTable(newData);
         }, REFRESH_INTERVAL);
     }

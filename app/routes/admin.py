@@ -61,7 +61,9 @@ def logout():
 @admin_bp.route('/dashboard')
 @admin_required
 def dashboard():
-    return render_template('admin/dashboard.html')
+    from app.models import Product
+    top_products = Product.query.limit(10).all()
+    return render_template('admin/dashboard.html', top_products=top_products)
 
 
 @admin_bp.route('/trigger-simulation')

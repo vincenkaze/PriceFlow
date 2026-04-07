@@ -233,6 +233,13 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 p-8">
       <!-- Trend Chart -->
       <div class="lg:col-span-2 min-h-[350px]">
+        <div class="mb-4">
+          <select id="trendProductSelect" class="bg-white/10 border border-white/20 rounded px-3 py-1 text-sm">
+            {% for p in top_products %}
+              <option value="{{ p.product_id }}">{{ p.name }} (${{ p.current_price }})</option>
+            {% endfor %}
+          </select>
+        </div>
         <canvas id="trendChart"></canvas>
       </div>
       
