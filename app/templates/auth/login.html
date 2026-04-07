@@ -1,258 +1,105 @@
-{% extends "base.html" %}
-
-{% block title %}Login - PriceFlow{% endblock %}
-
-{% block extra_head %}
-<style>
-.page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #0a0c10 0%, #1a1f35 100%);
-  position: relative;
-  overflow: hidden;
-}
-.bg-blur {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
-.blur {
-  position: absolute;
-  width: 600px;
-  height: 600px;
-  border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.4;
-}
-.blur.top {
-  top: -200px;
-  left: -100px;
-  background: radial-gradient(circle, #135bec 0%, transparent 70%);
-}
-.blur.bottom {
-  bottom: -200px;
-  right: -100px;
-  background: radial-gradient(circle, #8b5cf6 0%, transparent 70%);
-}
-.wrapper {
-  position: relative;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 420px;
-}
-.header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-.logo {
-  width: 72px;
-  height: 72px;
-  margin: 0 auto 1rem;
-  background: linear-gradient(135deg, #135bec 0%, #8b5cf6 100%);
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 32px rgba(19, 91, 236, 0.3);
-}
-.title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: white;
-  margin-bottom: 0.5rem;
-}
-.subtitle {
-  color: #94a3b8;
-  font-size: 0.875rem;
-}
-.card {
-  width: 100%;
-  background: rgba(17, 20, 27, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 2rem;
-  backdrop-filter: blur(20px);
-}
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-.field label {
-  display: block;
-  color: #e2e8f0;
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-}
-.field-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-.field-top .link {
-  font-size: 0.75rem;
-  color: #135bec;
-  text-decoration: none;
-}
-.input-group {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-.input-group .icon {
-  position: absolute;
-  left: 12px;
-  color: #64748b;
-  font-size: 1.25rem;
-}
-.input {
-  width: 100%;
-  padding: 12px 12px 12px 44px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: white;
-  font-size: 0.875rem;
-  outline: none;
-  transition: all 0.2s;
-}
-.input:focus {
-  border-color: #135bec;
-  box-shadow: 0 0 0 3px rgba(19, 91, 236, 0.2);
-}
-.input::placeholder {
-  color: #64748b;
-}
-.toggle {
-  position: absolute;
-  right: 12px;
-  background: none;
-  border: none;
-  color: #64748b;
-  cursor: pointer;
-  padding: 0;
-}
-.btn {
-  width: 100%;
-  padding: 14px;
-  background: linear-gradient(135deg, #135bec 0%, #8b5cf6 100%);
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-top: 0.5rem;
-}
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(19, 91, 236, 0.4);
-}
-.footer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-.footer a {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  color: #64748b;
-  font-size: 0.75rem;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-.footer a:hover {
-  color: #135bec;
-}
-.footer .dot {
-  width: 4px;
-  height: 4px;
-  background: #64748b;
-  border-radius: 50%;
-}
-.security {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-  color: #64748b;
-  font-size: 0.75rem;
-}
-.security .material-symbols-outlined {
-  font-size: 1rem;
-  color: #22c55e;
-}
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="page">
-  <div class="bg-blur">
-    <div class="blur top"></div>
-    <div class="blur bottom"></div>
-  </div>
-
-  <div class="wrapper">
-    <div class="header">
-      <div class="logo">
-        <span class="material-symbols-outlined text-3xl text-white">shopping_cart</span>
-      </div>
-      <h1 class="title">Welcome Back</h1>
-      <p class="subtitle">Sign in to your PriceFlow account</p>
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - PriceFlow</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { colors: { primary: '#135bec' } } }
+    }
+  </script>
+  
+  <style>
+    .page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0a0c10 0%, #1a1f35 100%); position: relative; overflow: hidden; }
+    .bg-blur { position: absolute; inset: 0; overflow: hidden; }
+    .blur { position: absolute; width: 600px; height: 600px; border-radius: 50%; filter: blur(100px); opacity: 0.4; }
+    .blur.top { top: -200px; left: -100px; background: radial-gradient(circle, #135bec 0%, transparent 70%); }
+    .blur.bottom { bottom: -200px; right: -100px; background: radial-gradient(circle, #8b5cf6 0%, transparent 70%); }
+    .wrapper { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 420px; }
+    .header { text-align: center; margin-bottom: 2rem; }
+    .logo { width: 72px; height: 72px; margin: 0 auto 1rem; background: linear-gradient(135deg, #135bec 0%, #8b5cf6 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(19, 91, 236, 0.3); }
+    .title { font-size: 1.75rem; font-weight: 700; color: white; margin-bottom: 0.5rem; }
+    .subtitle { color: #94a3b8; font-size: 0.875rem; }
+    .card { width: 100%; background: rgba(17, 20, 27, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 2rem; backdrop-filter: blur(20px); }
+    .form { display: flex; flex-direction: column; gap: 1.25rem; }
+    .field label { display: block; color: #e2e8f0; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; }
+    .field-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .field-top .link { font-size: 0.75rem; color: #135bec; text-decoration: none; }
+    .input-group { position: relative; display: flex; align-items: center; }
+    .input-group .icon { position: absolute; left: 12px; color: #64748b; font-size: 1.25rem; }
+    .input { width: 100%; padding: 12px 12px 12px 44px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; font-size: 0.875rem; outline: none; transition: all 0.2s; }
+    .input:focus { border-color: #135bec; box-shadow: 0 0 0 3px rgba(19, 91, 236, 0.2); }
+    .input::placeholder { color: #64748b; }
+    .btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #135bec 0%, #8b5cf6 100%); border: none; border-radius: 8px; color: white; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem; }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(19, 91, 236, 0.4); }
+    .footer { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+    .footer a { display: flex; align-items: center; gap: 0.25rem; color: #64748b; font-size: 0.75rem; text-decoration: none; transition: color 0.2s; }
+    .footer a:hover { color: #135bec; }
+    .footer .dot { width: 4px; height: 4px; background: #64748b; border-radius: 50%; }
+    .security { display: flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem; color: #64748b; font-size: 0.75rem; }
+    .security .material-symbols-outlined { font-size: 1rem; color: #22c55e; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="bg-blur">
+      <div class="blur top"></div>
+      <div class="blur bottom"></div>
     </div>
 
-    <div class="card">
-      <form method="POST" action="{{ url_for('auth.login') }}" class="form">
-        <div class="field">
-          <label>Username</label>
-          <div class="input-group">
-            <span class="material-symbols-outlined icon">person</span>
-            <input name="username" class="input" placeholder="Enter your username" type="text" required>
-          </div>
+    <div class="wrapper">
+      <div class="header">
+        <div class="logo">
+          <span class="material-symbols-outlined text-3xl text-white">shopping_cart</span>
         </div>
+        <h1 class="title">Welcome Back</h1>
+        <p class="subtitle">Sign in to your PriceFlow account</p>
+      </div>
 
-        <div class="field">
-          <div class="field-top">
-            <label>Password</label>
-            <a href="#" class="link">Forgot password?</a>
+      <div class="card">
+        <form method="POST" action="{{ url_for('auth.login') }}" class="form">
+          <div class="field">
+            <label>Username</label>
+            <div class="input-group">
+              <span class="material-symbols-outlined icon">person</span>
+              <input name="username" class="input" placeholder="Enter your username" type="text" required>
+            </div>
           </div>
-          <div class="input-group">
-            <span class="material-symbols-outlined icon">lock</span>
-            <input name="password" class="input pr-10" placeholder="••••••••" type="password" required>
+
+          <div class="field">
+            <div class="field-top">
+              <label>Password</label>
+              <a href="#" class="link">Forgot password?</a>
+            </div>
+            <div class="input-group">
+              <span class="material-symbols-outlined icon">lock</span>
+              <input name="password" class="input pr-10" placeholder="••••••••" type="password" required>
+            </div>
           </div>
+
+          <button type="submit" class="btn">Sign In</button>
+        </form>
+
+        <div class="footer">
+          <a href="{{ url_for('auth.register') }}"><span class="material-symbols-outlined">person_add</span>Create Account</a>
+          <span class="dot"></span>
+          <a href="{{ url_for('admin.login') }}"><span class="material-symbols-outlined">shield_person</span>Admin Login</a>
         </div>
+      </div>
 
-        <button type="submit" class="btn">Sign In</button>
-      </form>
-
-      <p class="text-center text-gray-400 text-sm mt-4">
-        Admin? <a href="{{ admin_login_url }}" class="text-primary hover:underline">Login here</a>
-      </p>
-
-      <div class="footer">
-        <a href="{{ url_for('auth.register') }}"><span class="material-symbols-outlined">person_add</span>Create Account</a>
-        <span class="dot"></span>
-        <a href="{{ url_for('admin.login') }}"><span class="material-symbols-outlined">shield_person</span>Admin Login</a>
+      <div class="security">
+        <span class="material-symbols-outlined">verified_user</span>
+        <p>Secure Session</p>
       </div>
     </div>
-
-    <div class="security">
-      <span class="material-symbols-outlined">verified_user</span>
-      <p>Secure Session</p>
-    </div>
   </div>
-</div>
-{% endblock %}
+</body>
+</html>
