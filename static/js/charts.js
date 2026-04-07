@@ -179,7 +179,8 @@
             const select = document.getElementById('trendProductSelect');
             if (select) {
                 select.addEventListener('change', function() {
-                    const selected = products.find(p => p.product_id === +this.value);
+                    const currentProducts = window._cachedTrends || products;
+                    const selected = currentProducts.find(p => p.product_id === +this.value);
                     if (selected) renderTrendChart(selected);
                 });
             }
