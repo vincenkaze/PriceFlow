@@ -1,5 +1,6 @@
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
 from .extensions import db
 
 class Category(db.Model):
@@ -32,7 +33,7 @@ class Product(db.Model):
     last_updated = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     __tablename__ = 'users'
     user_id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
@@ -42,6 +43,12 @@ class User(db.Model):
     role = db.Column(db.String(20), default='customer')
     last_login = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    orders = db.relationship('Order', backref='user', lazy=True)
+
+    @property
+    def id(self):
+        return self.user_id
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -126,3 +133,25 @@ class PricingRule(db.Model):
     is_global = db.Column(db.Boolean, default=True)
     category_id = db.Column(db.Integer, db.ForeignKey('categories.category_id'))
     is_active = db.Column(db.Boolean, default=True)
+
+
+class Order(db.Model):
+    __tablename__ = 'orders'
+    order_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
+    status = db.Column(db.String(20), default='placed')
+    total_amount = db.Column(db.Float, default=0.0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    items = db.relationship('OrderItem', backref='order', lazy=True)
+
+
+class OrderItem(db.Model):
+    __tablename__ = 'order_items'
+    item_id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.order_id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.product_id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    price_at_purchase = db.Column(db.Float, nullable=False)
+
+    product = db.relationship('Product')

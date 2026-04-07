@@ -1,9 +1,15 @@
 from flask import Flask
 from datetime import datetime
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from .config import config
 from .extensions import db, migrate
+from flask_login import LoginManager
+
+login_manager = LoginManager()
 
 # SocketIO for real-time updates (optional)
 try:
@@ -29,6 +35,13 @@ def create_app(config_name='development'):
     # Init extensions
     db.init_app(flask_app)
     migrate.init_app(flask_app, db)
+    login_manager.init_app(flask_app)
+    login_manager.login_view = 'auth.login'
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        from app.models import User
+        return User.query.get(int(user_id))
 
     # Make models visible to Alembic
     import app.models
@@ -42,6 +55,15 @@ def create_app(config_name='development'):
 
     from .routes.api import api_bp
     flask_app.register_blueprint(api_bp, url_prefix='/api')
+
+    from .routes.auth import auth_bp
+    flask_app.register_blueprint(auth_bp)
+
+    from .routes.cart import cart_bp
+    flask_app.register_blueprint(cart_bp)
+
+    from .routes.orders import orders_bp
+    flask_app.register_blueprint(orders_bp)
 
     # Initialize SocketIO if available
     if socketio_available and socketio:
@@ -68,6 +90,6 @@ def create_app(config_name='development'):
 
     print(f" PriceFlow App created in {config_name.upper()} mode")
     print(f"   DB -> {flask_app.config['SQLALCHEMY_DATABASE_URI']}")
-    print("    Models loaded | Main + Admin routes registered")
+    print("    Models loaded | Main + Admin + Auth + Cart + Orders routes registered")
 
     return flask_app

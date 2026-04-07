@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart - PriceFlow{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-8 px-4">
+  <h1 class="text-3xl font-bold text-white mb-8">Shopping Cart</h1>
+  
+  {% if cart_items %}
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="lg:col-span-2 space-y-4">
+      {% for item in cart_items %}
+      <div class="bg-gray-800 rounded-lg p-4 flex items-center gap-4">
+        <div class="flex-shrink-0">
+          <img src="{{ item.product.image_url or 'https://via.placeholder.com/100' }}" 
+               alt="{{ item.product.name }}" 
+               class="w-20 h-20 object-cover rounded">
+        </div>
+        
+        <div class="flex-1">
+          <h3 class="text-white font-medium">
+            <a href="{{ url_for('main.product_detail', product_id=item.product.product_id) }}">
+              {{ item.product.name }}
+            </a>
+          </h3>
+          <p class="text-gray-400">${{ "%.2f"|format(item.product.current_price) }} each</p>
+        </div>
+        
+        <form action="{{ url_for('cart.update_cart', product_id=item.product.product_id) }}" method="POST" class="flex items-center gap-2">
+          <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}"
+                 class="w-16 px-2 py-1 text-center bg-gray-700 text-white border border-gray-600 rounded">
+          <button type="submit" class="text-sm text-gray-400 hover:text-white">Update</button>
+        </form>
+        
+        <div class="text-right">
+          <p class="text-white font-medium">${{ "%.2f"|format(item.subtotal) }}</p>
+          <form action="{{ url_for('cart.remove_from_cart', product_id=item.product.product_id) }}" method="POST">
+            <button type="submit" class="text-sm text-red-400 hover:text-red-300">Remove</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    
+    <div class="bg-gray-800 rounded-lg p-6 h-fit">
+      <h2 class="text-xl font-bold text-white mb-4">Order Summary</h2>
+      
+      <div class="space-y-2 mb-4">
+        <div class="flex justify-between text-gray-300">
+          <span>Subtotal</span>
+          <span>${{ "%.2f"|format(total) }}</span>
+        </div>
+        <div class="flex justify-between text-gray-300">
+          <span>Tax</span>
+          <span>$0.00</span>
+        </div>
+        <div class="border-t border-gray-700 pt-2 flex justify-between text-white font-bold">
+          <span>Total</span>
+          <span>${{ "%.2f"|format(total) }}</span>
+        </div>
+      </div>
+      
+      {% if current_user.is_authenticated %}
+      <form action="{{ url_for('orders.checkout') }}" method="POST">
+        <button type="submit" 
+                class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded">
+          Proceed to Checkout
+        </button>
+      </form>
+      {% else %}
+      <a href="{{ url_for('auth.login', next=request.path) }}" 
+         class="block w-full text-center bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded">
+        Login to Checkout
+      </a>
+      {% endif %}
+      
+      <form action="{{ url_for('cart.clear_cart') }}" method="POST" class="mt-4">
+        <button type="submit" class="w-full text-gray-400 hover:text-white text-sm">
+          Clear Cart
+        </button>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <div class="text-center py-12">
+    <p class="text-gray-400 text-lg mb-4">Your cart is empty</p>
+    <a href="{{ url_for('main.home') }}" class="text-primary hover:text-primary-light">
+      Continue Shopping
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

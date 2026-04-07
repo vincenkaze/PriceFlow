@@ -125,6 +125,15 @@ def status():
         "timestamp": datetime.utcnow().isoformat()
     })
 
+@main_bp.route('/product/<int:product_id>')
+def product_detail(product_id):
+    product = Product.query.get_or_404(product_id)
+    
+    latest_demand = DemandScore.query.filter_by(product_id=product_id)\
+        .order_by(DemandScore.calculated_at.desc()).first()
+    
+    return render_template('product/detail.html', product=product, latest_demand=latest_demand)
+
 @main_bp.route('/api/products')
 def api_products():
     """API endpoint for real-time product data"""
