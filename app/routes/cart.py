@@ -62,7 +62,12 @@ def remove_from_cart(product_id):
 
 @cart_bp.route('/update/<int:product_id>', methods=['POST'])
 def update_cart(product_id):
-    quantity = int(request.form.get('quantity', 1))
+    try:
+        quantity_str = request.form.get('quantity', '1')
+        quantity = int(quantity_str) if quantity_str else 1
+    except (ValueError, TypeError):
+        quantity = 1
+    
     cart = session.get('cart', {})
     
     if quantity <= 0:
@@ -73,9 +78,13 @@ def update_cart(product_id):
         product = Product.query.get(product_id)
         if product and product.stock >= quantity:
             cart[str(product_id)] = quantity
+            session['cart'] = cart
             flash("Cart updated", "success")
+        elif product:
+            flash(f"Only {product.stock} units available", "warning")
+            return redirect(url_for('cart.view_cart'))
         else:
-            flash(f"Only {product.stock if product else 0} units available", "warning")
+            flash("Product not found", "danger")
             return redirect(url_for('cart.view_cart'))
     
     session['cart'] = cart

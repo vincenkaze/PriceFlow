@@ -26,9 +26,9 @@
           <p class="text-gray-400">${{ "%.2f"|format(item.product.current_price) }} each</p>
         </div>
         
-        <form action="{{ url_for('cart.update_cart', product_id=item.product.product_id) }}" method="POST" class="flex items-center gap-2">
+        <form action="{{ url_for('cart.update_cart', product_id=item.product.product_id) }}" method="POST" class="flex items-center gap-2" onchange="this.querySelector('button').textContent='...' ; this.submit()">
           <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}"
-                 class="w-16 px-2 py-1 text-center bg-gray-700 text-white border border-gray-600 rounded">
+                 class="w-16 px-2 py-1 text-center bg-gray-700 text-white border border-gray-600 rounded quantity-input">
           <button type="submit" class="text-sm text-gray-400 hover:text-white">Update</button>
         </form>
         
