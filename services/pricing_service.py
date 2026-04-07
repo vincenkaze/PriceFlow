@@ -109,7 +109,7 @@ class PricingService:
 
             zone_counts[zone] += 1
 
-            if abs(new_price - product['base_price']) > 0.01:
+            if abs(new_price - product['current_price']) > 0.01:
                 updated += 1
                 changes.append({
                     'product_id': product_id,
