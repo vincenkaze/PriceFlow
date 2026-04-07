@@ -61,58 +61,61 @@
 {% block content %}
 <div class="p-8 space-y-8">
   
-  <!-- ML Trends Section -->
-  <section class="glass-card rounded-2xl overflow-hidden">
-    <div class="p-8 border-b border-white/5 flex justify-between items-center">
+  <!-- ML Trend Summary -->
+  <section class="glass-card rounded-2xl p-6 mb-6">
+    <div class="flex items-center justify-between">
       <div>
-        <h4 class="text-xl font-bold font-headline text-white">ML-powered Short-term Forecasting</h4>
-        <p class="text-on-surface-variant text-sm">Demand trend analysis with EMA indicators</p>
+        <h3 class="text-lg font-bold text-white" id="summaryProductName">Select a product</h3>
+        <p class="text-sm text-slate-400 mt-1">
+          <span id="summaryTrend" class="font-semibold">—</span> ·
+          Velocity <span id="summaryVelocity" class="text-white font-medium">—</span> ·
+          Conf. <span id="summaryConfidence" class="text-white font-medium">—</span>%
+        </p>
       </div>
-      <span class="material-symbols-outlined text-primary text-2xl">auto_graph</span>
-    </div>
-    
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 p-8">
-      <!-- Trend Chart -->
-      <div class="lg:col-span-2 min-h-[350px]">
-        <div class="mb-4">
-          <select id="trendProductSelect" class="bg-white/10 border border-white/20 rounded px-3 py-1 text-sm">
-            {% for p in top_products %}
-              <option value="{{ p.product_id }}">{{ p.name }} (${{ p.current_price }})</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div id="trendChart" class="w-full h-[350px] flex items-end gap-1 px-2 pb-8 border-b border-white/10 relative">
-          <!-- Bars injected by JS -->
-        </div>
-      </div>
-      
-      <!-- Trend Table -->
-      <div class="overflow-hidden">
-        <table class="w-full text-left">
-          <thead>
-            <tr class="text-outline text-[10px] uppercase tracking-widest border-b border-white/5">
-              <th class="py-3 font-bold">Product</th>
-              <th class="py-3 font-bold">Trend</th>
-              <th class="py-3 font-bold">Velocity</th>
-              <th class="py-3 font-bold">Conf.</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-white/5" id="trendsTableBody">
-            <tr>
-              <td colspan="4" class="py-8 text-center text-on-surface-variant text-sm">
-                Loading trend data...
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="text-right">
+        <p class="text-xs text-slate-500 uppercase tracking-wider">ML Forecast (T+1)</p>
+        <p class="text-2xl font-black text-amber-400" id="summaryForecast">—</p>
       </div>
     </div>
+  </section>
+  
+  <!-- Chart Section -->
+  <section class="glass-card rounded-2xl p-6">
+    <div class="mb-4 flex justify-between items-center">
+      <select id="trendProductSelect" class="bg-white/10 border border-white/20 rounded px-3 py-2 text-sm text-white">
+        {% for p in top_products %}
+          <option value="{{ p.product_id }}">{{ p.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="relative" style="height: 320px;">
+      <canvas id="trendChart"></canvas>
+    </div>
+  </section>
+
+  <!-- Trend Table -->
+  <section class="mt-6">
+    <table class="w-full text-left">
+      <thead>
+        <tr class="text-outline text-[10px] uppercase tracking-widest border-b border-white/10">
+          <th class="py-3 pr-4 font-bold">Product</th>
+          <th class="py-3 px-2 font-bold">Trend</th>
+          <th class="py-3 px-2 font-bold">Velocity</th>
+          <th class="py-3 px-2 font-bold">Conf.</th>
+          <th class="py-3 pl-2 font-bold">Forecast</th>
+        </tr>
+      </thead>
+      <tbody id="trendsTableBody">
+        <tr><td colspan="5" class="py-8 text-center text-slate-500">Loading...</td></tr>
+      </tbody>
+    </table>
   </section>
   
 </div>
 {% endblock %}
 
 {% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
   .glass-card {
     background: rgba(25, 37, 64, 0.4);

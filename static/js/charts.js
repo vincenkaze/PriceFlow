@@ -2,7 +2,6 @@
     'use strict';
 
     const REFRESH_INTERVAL = 30000;
-    let trendChart = null;
     let refreshTimer = null;
 
     async function loadTrendData() {
@@ -17,156 +16,189 @@
         }
     }
 
-    function renderTrendChart(products, selectedId) {
-        const container = document.getElementById('trendChart');
-        if (!container) {
-            console.warn('[Charts] Container not found');
-            return;
-        }
+    function renderTrendChart(product) {
+        const canvas = document.getElementById('trendChart');
+        if (!canvas) return;
 
-        if (products.length === 0) {
-            container.innerHTML = '<div class="text-slate-400 text-center w-full">No data available</div>';
-            return;
-        }
+        const existingChart = Chart.getChart(canvas);
+        if (existingChart) existingChart.destroy();
 
-        const product = products.find(p => p.id === selectedId) || products[0];
         const chartData = product.chart_data;
-
         if (!chartData.raw_points || chartData.raw_points.length < 3) {
-            container.innerHTML = `<div class="text-slate-400 text-center w-full">Insufficient data for ${product.name}</div>`;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.font = '14px system-ui';
+            ctx.fillStyle = '#94a3b8';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Insufficient data for ${product.name}`, canvas.width / 2, canvas.height / 2);
             return;
         }
 
-        const maxScore = Math.max(...chartData.raw_points, 120);
-        const barsHtml = chartData.raw_points.slice(-30).map((score, i) => {
-            const heightPct = Math.max(5, (score / maxScore) * 100);
-            const emaShort = chartData.ema_short?.[chartData.ema_short.length - 30 + i] || 0;
-            const emaLong = chartData.ema_long?.[chartData.ema_long.length - 30 + i] || 0;
-            return `
-                <div class="flex-1 flex flex-col items-center gap-1">
-                    <div class="w-full flex gap-[2px] items-end h-[300px]">
-                        <div class="flex-1 bg-slate-600/60 rounded-t hover:bg-slate-500 transition relative group" style="height: ${heightPct}%">
-                            <div class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-slate-300 opacity-0 group-hover:opacity-100 transition">${score}</div>
-                        </div>
-                        <div class="flex-1 bg-green-500/60 rounded-t" style="height: ${Math.max(5, (emaShort / maxScore) * 100)}%"></div>
-                        <div class="flex-1 bg-blue-500/60 rounded-t" style="height: ${Math.max(5, (emaLong / maxScore) * 100)}%"></div>
-                    </div>
-                </div>
-            `;
-        }).join('');
+        const labels = chartData.timestamps.map((t, i) => {
+            const minsAgo = (chartData.raw_points.length - 1 - i) * 15;
+            return minsAgo === 0 ? 'now' : `-${minsAgo}m`;
+        });
 
-        container.innerHTML = `
-            <div class="flex items-end gap-1 h-[300px] w-full pb-6 border-b border-white/20 relative">
-                ${barsHtml}
-                <div class="absolute bottom-0 left-0 w-full flex justify-between text-xs text-slate-500 pt-2">
-                    <span>T-${chartData.raw_points.length - 30}</span>
-                    <span>T${chartData.raw_points.length}</span>
-                </div>
-            </div>
-            <div class="flex gap-4 mt-2 text-xs">
-                <div class="flex items-center gap-2">
-                    <div class="w-3 h-3 bg-slate-600/60 rounded"></div>
-                    <span class="text-slate-400">Raw</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-3 h-3 bg-green-500/60 rounded"></div>
-                    <span class="text-slate-400">EMA-3</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-3 h-3 bg-blue-500/60 rounded"></div>
-                    <span class="text-slate-400">EMA-7</span>
-                </div>
-            </div>
-        `;
+        const forecastStart = chartData.raw_points.length - 3;
+
+        const ctx = canvas.getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [...labels, 'T+1', 'T+2', 'T+3'],
+                datasets: [
+                    {
+                        label: 'Raw Demand',
+                        data: chartData.raw_points,
+                        borderColor: 'rgba(148,163,184,0.4)',
+                        backgroundColor: 'rgba(148,163,184,0.05)',
+                        borderWidth: 1,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 2
+                    },
+                    {
+                        label: 'EMA-3 (Short)',
+                        data: chartData.ema_short,
+                        borderColor: '#22c55e',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: false,
+                        pointRadius: 3
+                    },
+                    {
+                        label: 'EMA-7 (Long)',
+                        data: chartData.ema_long,
+                        borderColor: '#3b82f6',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: false,
+                        pointRadius: 3
+                    },
+                    {
+                        label: 'ML Forecast',
+                        data: [...Array(forecastStart).fill(null), ...(chartData.ml_forecast_line?.slice(-3) || [])],
+                        borderColor: '#f59e0b',
+                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: false,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#f59e0b'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `${product.name} — ${product.trend?.toUpperCase() || 'ANALYZING'}`,
+                        color: '#e2e8f0',
+                        font: { size: 14, weight: 'bold' }
+                    },
+                    legend: { position: 'bottom', labels: { color: '#94a3b8', boxWidth: 12 } },
+                    tooltip: {
+                        backgroundColor: 'rgba(6,14,32,0.95)',
+                        titleColor: '#e2e8f0',
+                        bodyColor: '#94a3b8',
+                        borderColor: 'rgba(163,166,255,0.2)',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    y: { min: 0, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
+                    x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } }
+                }
+            }
+        });
+
+        updateTrendSummary(product);
+    }
+
+    function updateTrendSummary(product) {
+        const summaryName = document.getElementById('summaryProductName');
+        const summaryTrend = document.getElementById('summaryTrend');
+        const summaryVelocity = document.getElementById('summaryVelocity');
+        const summaryConfidence = document.getElementById('summaryConfidence');
+        const summaryForecast = document.getElementById('summaryForecast');
+
+        if (!summaryName) return;
+
+        summaryName.textContent = product.name;
+
+        const trendColors = { rising: 'text-green-400', falling: 'text-red-400', stable: 'text-slate-400' };
+        const trendIcons = { rising: '↑', falling: '↓', stable: '→' };
+        const trend = product.trend || 'stable';
+
+        summaryTrend.className = `font-semibold ${trendColors[trend] || 'text-slate-400'}`;
+        summaryTrend.textContent = `${trendIcons[trend]} ${trend.toUpperCase()}`;
+        summaryVelocity.textContent = product.velocity;
+        summaryConfidence.textContent = ((product.confidence || 0) * 100).toFixed(0);
+        summaryForecast.textContent = product.ml_forecast != null ? product.ml_forecast.toFixed(1) : '—';
     }
 
     function renderProductTable(products) {
         const container = document.getElementById('trendsTableBody');
         if (!container) return;
-
-        if (products.length === 0) {
-            container.innerHTML = '<tr><td colspan="6">No trend data available</td></tr>';
+        if (!products.length) {
+            container.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-slate-500">No trend data</td></tr>';
             return;
         }
 
+        const trendColors = { rising: 'text-green-400 bg-green-400/10', falling: 'text-red-400 bg-red-400/10', stable: 'text-slate-400 bg-slate-400/10' };
+        const trendIcons = { rising: '↑', falling: '↓', stable: '→' };
+
         let html = '';
         products.forEach(p => {
-            const trendClass = p.trend === 'rising' ? 'text-green-600' :
-                              p.trend === 'falling' ? 'text-red-600' : 'text-gray-600';
-            
-            html += `
-                <tr>
-                    <td>${p.name}</td>
-                    <td><span class="${trendClass} font-semibold">${p.trend}</span></td>
-                    <td>${p.velocity}</td>
-                    <td>${(p.confidence * 100).toFixed(0)}%</td>
-                    <td>${p.forecast !== null ? p.forecast : '-'}</td>
-                    <td>${p.stock}</td>
-                </tr>
-            `;
+            const trend = p.trend || 'stable';
+            const cls = trendColors[trend] || trendColors.stable;
+            html += `<tr class="border-b border-white/5 hover:bg-white/5 transition">
+                <td class="py-3 pr-4 text-white font-medium">${p.name}</td>
+                <td class="py-3 px-2">
+                    <span class="px-2 py-1 rounded text-xs font-bold ${cls}">${trendIcons[trend]} ${trend}</span>
+                </td>
+                <td class="py-3 px-2 text-slate-300">${(p.velocity || 0) > 0 ? '+' : ''}${p.velocity}</td>
+                <td class="py-3 px-2 text-slate-300">${((p.confidence || 0) * 100).toFixed(0)}%</td>
+                <td class="py-3 pl-2 text-amber-400 font-medium">${p.ml_forecast != null ? p.ml_forecast.toFixed(1) : '—'}</td>
+            </tr>`;
         });
         container.innerHTML = html;
     }
 
-    function showNoDataMessage(canvas) {
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.font = '16px system-ui';
-        ctx.fillStyle = '#64748b';
-        ctx.textAlign = 'center';
-        ctx.fillText('No trend data available', canvas.width / 2, canvas.height / 2);
-    }
-
-    function showInsufficientData(canvas, productName) {
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.font = '14px system-ui';
-        ctx.fillStyle = '#94a3b8';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Insufficient data for ${productName}`, canvas.width / 2, canvas.height / 2);
-    }
-
     async function initTrendCharts() {
         const products = await loadTrendData();
-        window._cachedTrendProducts = products;
-        
-        const select = document.getElementById('trendProductSelect');
-        const defaultId = select ? parseInt(select.value) : null;
-        
-        renderTrendChart(products, defaultId);
-        renderProductTable(products);
+        window._cachedTrends = products;
 
-        select?.addEventListener('change', (e) => {
-            const selectedId = parseInt(e.target.value);
-            renderTrendChart(products, selectedId);
-        });
+        if (products.length > 0) {
+            renderTrendChart(products[0]);
+            renderProductTable(products);
+
+            const select = document.getElementById('trendProductSelect');
+            if (select) {
+                select.addEventListener('change', function() {
+                    const selected = products.find(p => p.product_id == this.value);
+                    if (selected) renderTrendChart(selected);
+                });
+            }
+        }
 
         if (refreshTimer) clearInterval(refreshTimer);
         refreshTimer = setInterval(async () => {
             const newData = await loadTrendData();
-            window._cachedTrendProducts = newData;
-            renderTrendChart(newData, defaultId);
+            window._cachedTrends = newData;
+            const selectedId = document.getElementById('trendProductSelect')?.value;
+            const selected = newData.find(p => p.product_id == selectedId) || newData[0];
+            if (selected) renderTrendChart(selected);
             renderProductTable(newData);
         }, REFRESH_INTERVAL);
     }
 
-    function destroyTrendCharts() {
-        if (refreshTimer) {
-            clearInterval(refreshTimer);
-            refreshTimer = null;
-        }
-        if (trendChart) {
-            trendChart.destroy();
-            trendChart = null;
-        }
-    }
-
-    if (typeof window !== 'undefined') {
-        window.initTrendCharts = initTrendCharts;
-        window.destroyTrendCharts = destroyTrendCharts;
-    }
-
-    if (typeof module !== 'undefined' && module.exports) {
-        module.exports = { loadTrendData, renderTrendChart, initTrendCharts };
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTrendCharts);
+    } else {
+        initTrendCharts();
     }
 })();
