@@ -350,7 +350,7 @@ def get_trending_analysis():
         chart_data = demand_regressor.get_chart_data(score_history)
         
         result.append({
-            'id': product.product_id,
+            'product_id': product.product_id,
             'name': product.name,
             'current_price': float(product.current_price),
             'stock': product.stock,
@@ -358,6 +358,7 @@ def get_trending_analysis():
             'velocity': trend_data['velocity'],
             'confidence': trend_data['confidence'],
             'forecast': trend_data['forecast'],
+            'ml_forecast': trend_data['ml_forecast'],
             'ema_short': trend_data['ema_short'],
             'ema_long': trend_data['ema_long'],
             'chart_data': chart_data

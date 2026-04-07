@@ -17,6 +17,7 @@
     }
 
     function renderTrendChart(product) {
+        console.log('renderTrendChart called with:', product?.name, 'id:', product?.product_id);
         const canvas = document.getElementById('trendChart');
         if (!canvas) return;
 
@@ -180,7 +181,10 @@
             if (select) {
                 select.addEventListener('change', function() {
                     const currentProducts = window._cachedTrends || products;
+                    console.log('Dropdown value:', this.value, 'Type:', typeof this.value);
+                    console.log('Products:', currentProducts.map(p => ({id: p.product_id, name: p.name})));
                     const selected = currentProducts.find(p => p.product_id === +this.value);
+                    console.log('Selected:', selected);
                     if (selected) renderTrendChart(selected);
                 });
             }
