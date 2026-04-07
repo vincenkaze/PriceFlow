@@ -322,3 +322,45 @@ def get_all_products():
         'max_price': float(p.max_price) if p.max_price else None,
         'last_updated': p.last_updated.isoformat() if p.last_updated else None
     } for p in products])
+
+
+@api_bp.route('/dashboard/trends', methods=['GET'])
+def get_trending_analysis():
+    """ML-powered short-term trend analysis for top products"""
+    from modules.ml.regressor import demand_regressor
+    
+    limit = request.args.get('limit', 10, type=int)
+    
+    products = Product.query.limit(limit).all()
+    
+    result = []
+    for product in products:
+        scores = (
+            DemandScore.query
+            .filter(DemandScore.product_id == product.product_id)
+            .order_by(DemandScore.calculated_at.desc())
+            .limit(30)
+            .all()
+        )
+        
+        score_history = [s.demand_score for s in scores]
+        score_history.reverse()
+        
+        trend_data = demand_regressor.analyze_trend(score_history)
+        chart_data = demand_regressor.get_chart_data(score_history)
+        
+        result.append({
+            'id': product.product_id,
+            'name': product.name,
+            'current_price': float(product.current_price),
+            'stock': product.stock,
+            'trend': trend_data['trend'],
+            'velocity': trend_data['velocity'],
+            'confidence': trend_data['confidence'],
+            'forecast': trend_data['forecast'],
+            'ema_short': trend_data['ema_short'],
+            'ema_long': trend_data['ema_long'],
+            'chart_data': chart_data
+        })
+    
+    return jsonify({'products': result})
