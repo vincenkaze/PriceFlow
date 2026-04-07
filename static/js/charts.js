@@ -179,7 +179,7 @@
             const select = document.getElementById('trendProductSelect');
             if (select) {
                 select.addEventListener('change', function() {
-                    const selected = products.find(p => p.product_id == parseInt(this.value));
+                    const selected = products.find(p => p.product_id === +this.value);
                     if (selected) renderTrendChart(selected);
                 });
             }
@@ -189,8 +189,8 @@
         refreshTimer = setInterval(async () => {
             const newData = await loadTrendData();
             window._cachedTrends = newData;
-            const selectedId = parseInt(document.getElementById('trendProductSelect')?.value);
-            const selected = newData.find(p => p.product_id == selectedId) || newData[0];
+            const selectedId = +document.getElementById('trendProductSelect')?.value;
+            const selected = newData.find(p => p.product_id === selectedId) || newData[0];
             if (selected) renderTrendChart(selected);
             renderProductTable(newData);
         }, REFRESH_INTERVAL);
