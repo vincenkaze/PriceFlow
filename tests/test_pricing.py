@@ -92,6 +92,15 @@ class TestPricingService:
         assert 'zone_counts' in result
         assert 'changes' in result
 
+    def test_changes_recorded_when_price_moves(self, pricing_service):
+        product = {'product_id': 1, 'name': 'P1', 'base_price': 100.0, 
+                   'current_price': 100.0, 'stock': 30}
+        result = pricing_service.update_prices([product], {1: 90})
+        assert result['updated'] == 1
+        assert len(result['changes']) == 1
+        assert result['changes'][0]['product_id'] == 1
+        assert result['changes'][0]['new_price'] > result['changes'][0]['old_price']
+
     def test_update_prices_with_automatic_restock(self, pricing_service):
         products = [
             {'product_id': 1, 'name': 'P1', 'base_price': 100.0, 'current_price': 100.0, 'stock': 3}

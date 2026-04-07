@@ -103,17 +103,18 @@ class PricingService:
 
             product['stock'] = current_stock
 
+            old_price = product['current_price']
             new_price, reason, zone = self.calculate_price(product, demand_score, rules)
             product['current_price'] = new_price
             product['last_updated'] = datetime.utcnow()
 
             zone_counts[zone] += 1
 
-            if abs(new_price - product['current_price']) > 0.01:
+            if abs(new_price - old_price) > 0.01:
                 updated += 1
                 changes.append({
                     'product_id': product_id,
-                    'old_price': product['base_price'],
+                    'old_price': old_price,
                     'new_price': new_price,
                     'demand_score': demand_score,
                     'stock': current_stock,
