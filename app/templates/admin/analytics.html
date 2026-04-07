@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}PriceFlow | Analytics{% endblock %}
+
+{% block sidebar %}
+<aside class="h-screen w-64 left-0 top-0 overflow-y-auto bg-[#060e20] border-r border-white/5 shadow-2xl shadow-black/50 z-50 flex flex-col py-8 font-['Manrope'] antialiased tracking-tight">
+  <div class="px-6 mb-12">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+        <span class="material-symbols-outlined text-on-primary text-xl">insights</span>
+      </div>
+      <div>
+        <h1 class="text-2xl font-black text-white tracking-tighter">PriceFlow</h1>
+        <p class="text-[10px] text-primary font-bold tracking-[0.2em] uppercase opacity-60">v2.4.0</p>
+      </div>
+    </div>
+  </div>
+  
+  <nav class="flex-1 space-y-1">
+    <a class="flex items-center gap-3 px-6 py-3 text-slate-400 opacity-70 hover:opacity-100 transition-all hover:bg-[#1f2b49]/30 hover:text-white group" href="{{ url_for('admin.dashboard') }}">
+      <span class="material-symbols-outlined group-hover:text-[#6366f1]">dashboard</span>
+      <span class="font-medium">Dashboard</span>
+    </a>
+    <a class="flex items-center gap-3 px-6 py-3 text-slate-400 opacity-70 hover:opacity-100 transition-all hover:bg-[#1f2b49]/30 hover:text-white group" href="{{ url_for('admin.pricing') }}">
+      <span class="material-symbols-outlined group-hover:text-[#6366f1]">payments</span>
+      <span class="font-medium">Pricing</span>
+    </a>
+    <a class="flex items-center gap-3 px-6 py-3 text-slate-400 opacity-70 hover:opacity-100 transition-all hover:bg-[#1f2b49]/30 hover:text-white group" href="{{ url_for('admin.products') }}">
+      <span class="material-symbols-outlined group-hover:text-[#6366f1]">inventory</span>
+      <span class="font-medium">Products</span>
+    </a>
+    <a class="flex items-center gap-3 px-6 py-3 text-white relative after:content-[''] after:absolute after:left-0 after:h-4 after:w-1 after:bg-[#6366f1] after:rounded-r-full group" href="#">
+      <span class="material-symbols-outlined text-[#6366f1]">analytics</span>
+      <span class="font-medium">Analytics</span>
+    </a>
+    
+    <div class="pt-8 mt-8 border-t border-white/5">
+      <a href="{{ url_for('admin.logout') }}" class="flex items-center gap-3 px-6 py-3 text-slate-400 opacity-70 hover:opacity-100 transition-all hover:bg-[#1f2b49]/30 hover:text-white group">
+        <span class="material-symbols-outlined group-hover:text-[#6366f1]">logout</span>
+        <span class="font-medium">Logout</span>
+      </a>
+    </div>
+  </nav>
+</aside>
+{% endblock %}
+
+{% block header %}
+<header class="sticky top-0 z-40 w-full bg-[#060e20]/80 backdrop-blur-xl border-b border-white/5 flex justify-between items-center px-8 h-20 font-['Manrope'] font-medium">
+  <div class="flex items-center gap-6 flex-1">
+    <h2 class="text-xl font-bold text-white tracking-tight">Demand Trend Analysis</h2>
+  </div>
+  <div class="flex items-center gap-6">
+    <button onclick="refreshData()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-highest hover:bg-surface-bright transition text-primary text-sm font-medium">
+      <span class="material-symbols-outlined text-sm">refresh</span>
+      Refresh
+    </button>
+  </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="p-8 space-y-8">
+  
+  <!-- ML Trends Section -->
+  <section class="glass-card rounded-2xl overflow-hidden">
+    <div class="p-8 border-b border-white/5 flex justify-between items-center">
+      <div>
+        <h4 class="text-xl font-bold font-headline text-white">ML-powered Short-term Forecasting</h4>
+        <p class="text-on-surface-variant text-sm">Demand trend analysis with EMA indicators</p>
+      </div>
+      <span class="material-symbols-outlined text-primary text-2xl">auto_graph</span>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 p-8">
+      <!-- Trend Chart -->
+      <div class="lg:col-span-2 min-h-[350px]">
+        <div class="mb-4">
+          <select id="trendProductSelect" class="bg-white/10 border border-white/20 rounded px-3 py-1 text-sm">
+            {% for p in top_products %}
+              <option value="{{ p.product_id }}">{{ p.name }} (${{ p.current_price }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <canvas id="trendChart"></canvas>
+      </div>
+      
+      <!-- Trend Table -->
+      <div class="overflow-hidden">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="text-outline text-[10px] uppercase tracking-widest border-b border-white/5">
+              <th class="py-3 font-bold">Product</th>
+              <th class="py-3 font-bold">Trend</th>
+              <th class="py-3 font-bold">Velocity</th>
+              <th class="py-3 font-bold">Conf.</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5" id="trendsTableBody">
+            <tr>
+              <td colspan="4" class="py-8 text-center text-on-surface-variant text-sm">
+                Loading trend data...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+  
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  .glass-card {
+    background: rgba(25, 37, 64, 0.4);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(163, 166, 255, 0.1);
+  }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const CONFIG = {
+    refreshRate: 5000,
+    apiEndpoints: {
+      trends: '/api/dashboard/trends?limit=10'
+    }
+  };
+
+  function animateRefreshIcon() {
+    const btn = event.target;
+    const icon = btn.querySelector('.material-symbols-outlined');
+    if (icon) {
+      icon.style.transition = 'transform 0.3s ease';
+      icon.style.transform = 'rotate(180deg)';
+      setTimeout(() => { icon.style.transform = 'rotate(360deg)'; }, 150);
+      setTimeout(() => { icon.style.transform = 'rotate(0deg)'; }, 300);
+    }
+  }
+
+  async function refreshData() {
+    animateRefreshIcon();
+    if (typeof initTrendCharts === 'function') {
+      initTrendCharts();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof initTrendCharts === 'function') {
+      initTrendCharts();
+    }
+  });
+</script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}

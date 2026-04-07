@@ -110,3 +110,19 @@ def trigger_pricing():
 def products():
     """Product management page with edit capabilities"""
     return render_template('admin/products.html')
+
+
+@admin_bp.route('/pricing')
+@admin_required
+def pricing():
+    """Pricing adjustments page"""
+    return render_template('admin/pricing.html')
+
+
+@admin_bp.route('/analytics')
+@admin_required
+def analytics():
+    """Analytics page with ML trend charts"""
+    from app.models import Product
+    top_products = Product.query.limit(10).all()
+    return render_template('admin/analytics.html', top_products=top_products)

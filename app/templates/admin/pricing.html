@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}PriceFlow | Pricing{% endblock %}
+
+{% block sidebar %}
+<aside class="h-screen w-64 left-0 top-0 overflow-y-auto bg-[#060e20] border-r border-white/5 shadow-2xl shadow-black/50 z-50 flex flex-col py-8 font-['Manrope'] antialiased tracking-tight">
+  <div class="px-6 mb-12">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+        <span class="material-symbols-outlined text-on-primary text-xl">insights</span>
+      </div>
+      <div>
+        <h1 class="text-2xl font-black text-white tracking-tighter">PriceFlow</h1>
+        <p class="text-[10px] text-primary font-bold tracking-[0.2em] uppercase opacity-60">v2.4.0</p>
+      </div>
+    </div>
+  </div>
+  
+  <nav class="flex-1 space-y-1">
+    <a class="flex items-center gap-3 px-6 py-3 text-slate-400 opacity-70 hover:opacity-100 transition-all hover:bg-[#1f2b49]/30 hover:text-white group" href="{{ url_for('admin.dashboard') }}">
+      <span class="material-symbols-outlined group-hover:text-[#6366f1]">dashboard</span>
+      <span class="font-medium">Dashboard</span>
+    </a>
+    <a class="flex items-center gap-3 px-6 py-3 text-white relative after:content-[''] after:absolute after:left-0 after:h-4 after:w-1 after:bg-[#6366f1] after:rounded-r-full group" href="#">
+      <span class="material-symbols-outlined text-[#6366f1]">payments</span>
+      <span class="font-medium">Pricing</span>
+    </a>
+    <a class="flex items-center gap-3 px-6 py-3 text-slate-400 opacity-70 hover:opacity-100 transition-all hover:bg-[#1f2b49]/30 hover:text-white group" href="{{ url_for('admin.products') }}">
+      <span class="material-symbols-outlined group-hover:text-[#6366f1]">inventory</span>
+      <span class="font-medium">Products</span>
+    </a>
+    <a class="flex items-center gap-3 px-6 py-3 text-slate-400 opacity-70 hover:opacity-100 transition-all hover:bg-[#1f2b49]/30 hover:text-white group" href="{{ url_for('admin.analytics') }}">
+      <span class="material-symbols-outlined group-hover:text-[#6366f1]">analytics</span>
+      <span class="font-medium">Analytics</span>
+    </a>
+    
+    <div class="pt-8 mt-8 border-t border-white/5">
+      <a href="{{ url_for('admin.logout') }}" class="flex items-center gap-3 px-6 py-3 text-slate-400 opacity-70 hover:opacity-100 transition-all hover:bg-[#1f2b49]/30 hover:text-white group">
+        <span class="material-symbols-outlined group-hover:text-[#6366f1]">logout</span>
+        <span class="font-medium">Logout</span>
+      </a>
+    </div>
+  </nav>
+</aside>
+{% endblock %}
+
+{% block header %}
+<header class="sticky top-0 z-40 w-full bg-[#060e20]/80 backdrop-blur-xl border-b border-white/5 flex justify-between items-center px-8 h-20 font-['Manrope'] font-medium">
+  <div class="flex items-center gap-6 flex-1">
+    <h2 class="text-xl font-bold text-white tracking-tight">Recent Dynamic Adjustments</h2>
+  </div>
+  <div class="flex items-center gap-6">
+    <button onclick="refreshData()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-highest hover:bg-surface-bright transition text-primary text-sm font-medium">
+      <span class="material-symbols-outlined text-sm">refresh</span>
+      Refresh
+    </button>
+  </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="p-8 space-y-8">
+  
+  <!-- Recent Dynamic Adjustments Table -->
+  <section class="glass-card rounded-2xl overflow-hidden">
+    <div class="p-8 border-b border-white/5 flex justify-between items-center">
+      <h4 class="text-xl font-bold font-headline text-white">Price Adjustment History</h4>
+      <button class="text-primary text-sm font-bold flex items-center gap-2 hover:underline cursor-pointer">
+        View Audit Log
+        <span class="material-symbols-outlined text-sm">open_in_new</span>
+      </button>
+    </div>
+    
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="text-outline text-[10px] uppercase tracking-widest border-b border-white/5">
+            <th class="px-8 py-4 font-bold">Product Name</th>
+            <th class="px-8 py-4 font-bold">Old Price</th>
+            <th class="px-8 py-4 font-bold">New Price</th>
+            <th class="px-8 py-4 font-bold">Delta</th>
+            <th class="px-8 py-4 font-bold">Status</th>
+            <th class="px-8 py-4 font-bold">Timestamp</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5" id="price-changes-table">
+          <tr>
+            <td colspan="6" class="px-8 py-12 text-center text-on-surface-variant">
+              <div class="flex flex-col items-center gap-2">
+                <div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <span class="text-xs">Loading price changes...</span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .glass-card {
+    background: rgba(25, 37, 64, 0.4);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(163, 166, 255, 0.1);
+  }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const CONFIG = {
+    refreshRate: 5000,
+    apiEndpoints: {
+      changes: '/api/dashboard/recent-changes'
+    }
+  };
+
+  function formatCurrency(num) {
+    if (num === null || num === undefined || isNaN(num)) return '$--';
+    return '$' + num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function formatPercent(num) {
+    if (num === null || num === undefined || isNaN(num)) return '--%';
+    const prefix = num > 0 ? '+' : '';
+    return prefix + num.toFixed(2) + '%';
+  }
+
+  function getProductIcon(productName) {
+    if (!productName) return 'inventory_2';
+    const name = productName.toLowerCase();
+    if (name.includes('laptop') || name.includes('macbook') || name.includes('pro')) return 'laptop_mac';
+    if (name.includes('phone') || name.includes('iphone') || name.includes('android')) return 'phone_android';
+    if (name.includes('watch') || name.includes('smartwatch') || name.includes('fit')) return 'watch';
+    if (name.includes('headphone') || name.includes('earbud') || name.includes('airpod')) return 'headphones';
+    if (name.includes('tablet') || name.includes('ipad')) return 'tablet_mac';
+    if (name.includes('camera') || name.includes('dslr') || name.includes('mirrorless')) return 'photo_camera';
+    if (name.includes('speaker') || name.includes('soundbar') || name.includes('audio')) return 'speaker';
+    if (name.includes('tv') || name.includes('television') || name.includes('monitor')) return 'tv';
+    if (name.includes('game') || name.includes('playstation') || name.includes('xbox')) return 'sports_esports';
+    return 'inventory_2';
+  }
+
+  function renderPriceTable(changes) {
+    const tbody = document.getElementById('price-changes-table');
+    
+    if (!Array.isArray(changes) || changes.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="px-8 py-12 text-center text-on-surface-variant">
+            <div class="flex flex-col items-center gap-2">
+              <span class="material-symbols-outlined text-4xl opacity-40">receipt_long</span>
+              <span class="text-sm">No recent price changes</span>
+            </div>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    const html = changes.slice(0, 20).map(c => {
+      const delta = c.old_price > 0 ? ((c.new_price - c.old_price) / c.old_price * 100) : 0;
+      const isPositive = delta > 0;
+      const icon = isPositive ? 'trending_up' : 'trending_down';
+      const status = isPositive ? 'Rising Demand' : (delta < 0 ? 'Stock Surplus' : 'Optimized');
+      const statusClass = isPositive ? 'text-tertiary' : 'text-error-dim';
+      const productIcon = getProductIcon(c.product_name);
+      const timestamp = c.timestamp ? new Date(c.timestamp).toLocaleString() : '-';
+
+      return `
+        <tr class="hover:bg-white/5 transition-colors group">
+          <td class="px-8 py-5">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded bg-surface-container-highest flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary-fixed-dim">${productIcon}</span>
+              </div>
+              <span class="text-white font-medium">${c.product_name || 'Unknown Product'}</span>
+            </div>
+          </td>
+          <td class="px-8 py-5 text-on-surface-variant">${formatCurrency(c.old_price)}</td>
+          <td class="px-8 py-5 text-white font-bold">${formatCurrency(c.new_price)}</td>
+          <td class="px-8 py-5">
+            <span class="${statusClass} font-bold">${formatPercent(delta)}</span>
+          </td>
+          <td class="px-8 py-5">
+            <div class="flex items-center gap-2 ${statusClass}">
+              <span class="material-symbols-outlined text-xl">${icon}</span>
+              <span class="text-xs font-bold uppercase tracking-tighter">${status}</span>
+            </div>
+          </td>
+          <td class="px-8 py-5 text-on-surface-variant text-sm">${timestamp}</td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody.innerHTML = html;
+  }
+
+  async function refreshData() {
+    try {
+      const response = await fetch(CONFIG.apiEndpoints.changes);
+      if (!response.ok) throw new Error('Failed to fetch changes');
+      const data = await response.json();
+      renderPriceTable(data);
+    } catch (error) {
+      console.error('Error loading price changes:', error);
+    }
+  }
+
+  function animateRefreshIcon() {
+    const btn = event.target;
+    const icon = btn.querySelector('.material-symbols-outlined');
+    if (icon) {
+      icon.style.transition = 'transform 0.3s ease';
+      icon.style.transform = 'rotate(180deg)';
+      setTimeout(() => { icon.style.transform = 'rotate(360deg)'; }, 150);
+      setTimeout(() => { icon.style.transform = 'rotate(0deg)'; }, 300);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    refreshData();
+    setInterval(refreshData, CONFIG.refreshRate);
+  });
+</script>
+{% endblock %}
