@@ -78,40 +78,6 @@
                 </div>
             </div>
         `;
-        return;
-                    }] : [])
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: `${product.name} - Demand Trend`
-                    },
-                    legend: {
-                        position: 'bottom'
-                    }
-                },
-                scales: {
-                    y: {
-                        min: 0,
-                        max: 150,
-                        title: {
-                            display: true,
-                            text: 'Demand Score'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Time'
-                        }
-                    }
-                }
-            }
-        });
     }
 
     function renderProductTable(products) {
