@@ -1,6 +1,7 @@
 import os
 from flask import Blueprint, render_template, redirect, url_for, request, session, flash, current_app
 from datetime import datetime
+from functools import wraps
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -8,18 +9,32 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
 
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('admin_logged_in'):
+            flash("Please log in to access admin area", "warning")
+            return redirect(url_for('admin.login', next=request.path))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 @admin_bp.route('/login', methods=['GET', 'POST'])
 def login():
+    if session.get('admin_logged_in'):
+        return redirect(url_for('admin.dashboard'))
+    
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         
         if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
-            # Set session with security flags
             session.permanent = True
             session['admin_logged_in'] = True
             flash("Login successful!", "success")
-            return redirect(url_for('admin.dashboard'))
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('admin.dashboard'))
         else:
             flash("Invalid credentials!", "danger")
     
@@ -27,31 +42,26 @@ def login():
 
 
 @admin_bp.route('/logout')
+@admin_required
 def logout():
     session.pop('admin_logged_in', None)
     flash("Logged out successfully.", "info")
-    return redirect(url_for('admin.login'))
+    return redirect(url_for('main.home'))
 
 
 @admin_bp.route('/dashboard')
+@admin_required
 def dashboard():
-    if not session.get('admin_logged_in'):
-        return redirect(url_for('admin.login'))
-    
-    # Dashboard data is now fetched via API for real-time updates
     return render_template('admin/dashboard.html')
 
 
 @admin_bp.route('/trigger-simulation')
+@admin_required
 def trigger_simulation():
-    if not session.get('admin_logged_in'):
-        return redirect(url_for('admin.login'))
-    
     from modules.user_simulation import simulation
     if simulation.running:
         flash("Simulation is already running in background.", "info")
     else:
-        # Manually trigger one simulation tick
         try:
             with current_app.app_context():
                 simulation._simulate_one_tick()
@@ -63,10 +73,8 @@ def trigger_simulation():
 
 
 @admin_bp.route('/trigger-demand')
+@admin_required
 def trigger_demand():
-    if not session.get('admin_logged_in'):
-        return redirect(url_for('admin.login'))
-    
     from modules.demand_analysis import demand_analyzer
     demand_analyzer.refresh_active_products()
     flash("Demand analysis manually refreshed!", "success")
@@ -74,10 +82,8 @@ def trigger_demand():
 
 
 @admin_bp.route('/trigger-pricing')
+@admin_required
 def trigger_pricing():
-    if not session.get('admin_logged_in'):
-        return redirect(url_for('admin.login'))
-    
     from modules.pricing_engine import pricing_engine
     try:
         with current_app.app_context():
@@ -89,9 +95,7 @@ def trigger_pricing():
 
 
 @admin_bp.route('/products')
+@admin_required
 def products():
     """Product management page with edit capabilities"""
-    if not session.get('admin_logged_in'):
-        return redirect(url_for('admin.login'))
-    
     return render_template('admin/products.html')
