@@ -32,7 +32,6 @@ def login():
         if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
             session.permanent = True
             session['admin_logged_in'] = True
-            flash("Login successful!", "success")
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('admin.dashboard'))
         else:
@@ -45,7 +44,6 @@ def login():
 @admin_required
 def logout():
     session.pop('admin_logged_in', None)
-    flash("Logged out successfully.", "info")
     return redirect(url_for('main.home'))
 
 

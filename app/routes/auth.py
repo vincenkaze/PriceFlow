@@ -24,7 +24,6 @@ def login():
             db.session.commit()
             
             next_page = request.args.get('next')
-            flash(f"Welcome back, {user.full_name or user.username}!", "success")
             return redirect(next_page) if next_page else redirect(url_for('main.home'))
         else:
             flash("Invalid username or password", "danger")
@@ -62,7 +61,6 @@ def register():
         db.session.add(user)
         db.session.commit()
         
-        flash("Registration successful! Please log in.", "success")
         return redirect(url_for('auth.login'))
     
     return render_template('auth/register.html')
@@ -72,5 +70,4 @@ def register():
 @login_required
 def logout():
     logout_user()
-    flash("You have been logged out", "info")
     return redirect(url_for('main.home'))

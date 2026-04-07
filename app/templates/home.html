@@ -136,7 +136,14 @@
         </button>
         
         <div id="profile-menu" class="hidden absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
-          {% if current_user.is_authenticated %}
+          {% if session.get('admin_logged_in') %}
+            <div class="px-4 py-2 border-b border-gray-700">
+              <p class="text-white font-medium">Admin</p>
+              <p class="text-gray-400 text-xs">Administrator</p>
+            </div>
+            <a href="{{ url_for('admin.dashboard') }}" class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white">Admin Dashboard</a>
+            <a href="{{ url_for('admin.logout') }}" class="block px-4 py-2 text-red-400 hover:bg-gray-700 hover:text-red-300">Logout</a>
+          {% elif current_user.is_authenticated %}
             <div class="px-4 py-2 border-b border-gray-700">
               <p class="text-white font-medium">{{ current_user.full_name or current_user.username }}</p>
               <p class="text-gray-400 text-xs capitalize">{{ current_user.role }}</p>
@@ -151,6 +158,9 @@
           {% else %}
             <a href="{{ url_for('auth.login') }}" class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white">Login</a>
             <a href="{{ url_for('auth.register') }}" class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white">Sign Up</a>
+            <div class="border-t border-gray-700 mt-1 pt-1">
+              <a href="{{ url_for('admin.login') }}" class="block px-4 py-2 text-yellow-400 hover:bg-gray-700 hover:text-yellow-300">Admin Login</a>
+            </div>
           {% endif %}
         </div>
       </div>
