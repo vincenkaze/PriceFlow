@@ -63,7 +63,8 @@ class DemandRegressor:
     def get_chart_data(self, score_history: List[int]) -> Dict:
         if not score_history:
             return {
-                "ema_line": [],
+                "ema_short": [],
+                "ema_long": [],
                 "raw_points": [],
                 "trend_line": [],
                 "timestamps": []

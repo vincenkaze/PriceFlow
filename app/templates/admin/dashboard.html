@@ -185,44 +185,84 @@
     </div>
   </section>
   
-  <!-- Adjustments Table -->
+    <!-- Adjustments Table -->
+    <section class="glass-card rounded-2xl overflow-hidden">
+      <div class="p-8 border-b border-white/5 flex justify-between items-center">
+        <h4 class="text-xl font-bold font-headline text-white">Recent Dynamic Adjustments</h4>
+        <button class="text-primary text-sm font-bold flex items-center gap-2 hover:underline cursor-pointer">
+          View Audit Log
+          <span class="material-symbols-outlined text-sm">open_in_new</span>
+        </button>
+      </div>
+      
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="text-outline text-[10px] uppercase tracking-widest border-b border-white/5">
+              <th class="px-8 py-4 font-bold">Product Name</th>
+              <th class="px-8 py-4 font-bold">Old Price</th>
+              <th class="px-8 py-4 font-bold">New Price</th>
+              <th class="px-8 py-4 font-bold">Delta</th>
+              <th class="px-8 py-4 font-bold">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5" id="price-changes-table">
+            <tr>
+              <td colspan="5" class="px-8 py-12 text-center text-on-surface-variant">
+                <div class="flex flex-col items-center gap-2">
+                  <div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                  <span class="text-xs">Loading price changes...</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  
+  <!-- ML Trends Section -->
   <section class="glass-card rounded-2xl overflow-hidden">
     <div class="p-8 border-b border-white/5 flex justify-between items-center">
-      <h4 class="text-xl font-bold font-headline text-white">Recent Dynamic Adjustments</h4>
-      <button class="text-primary text-sm font-bold flex items-center gap-2 hover:underline cursor-pointer">
-        View Audit Log
-        <span class="material-symbols-outlined text-sm">open_in_new</span>
-      </button>
+      <div>
+        <h4 class="text-xl font-bold font-headline text-white">Demand Trend Analysis</h4>
+        <p class="text-on-surface-variant text-sm">ML-powered short-term forecasting</p>
+      </div>
+      <span class="material-symbols-outlined text-primary text-2xl">auto_graph</span>
     </div>
     
-    <div class="overflow-x-auto">
-      <table class="w-full text-left">
-        <thead>
-          <tr class="text-outline text-[10px] uppercase tracking-widest border-b border-white/5">
-            <th class="px-8 py-4 font-bold">Product Name</th>
-            <th class="px-8 py-4 font-bold">Old Price</th>
-            <th class="px-8 py-4 font-bold">New Price</th>
-            <th class="px-8 py-4 font-bold">Delta</th>
-            <th class="px-8 py-4 font-bold">Status</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-white/5" id="price-changes-table">
-          <tr>
-            <td colspan="5" class="px-8 py-12 text-center text-on-surface-variant">
-              <div class="flex flex-col items-center gap-2">
-                <div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                <span class="text-xs">Loading price changes...</span>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 p-8">
+      <!-- Trend Chart -->
+      <div class="lg:col-span-2 min-h-[350px]">
+        <canvas id="trendChart"></canvas>
+      </div>
+      
+      <!-- Trend Table -->
+      <div class="overflow-hidden">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="text-outline text-[10px] uppercase tracking-widest border-b border-white/5">
+              <th class="py-3 font-bold">Product</th>
+              <th class="py-3 font-bold">Trend</th>
+              <th class="py-3 font-bold">Velocity</th>
+              <th class="py-3 font-bold">Conf.</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5" id="trendsTableBody">
+            <tr>
+              <td colspan="4" class="py-8 text-center text-on-surface-variant text-sm">
+                Loading trend data...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </section>
 </div>
 {% endblock %}
 
 {% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
 <style>
   .glass-card {
@@ -698,6 +738,12 @@
     
     // Initial data fetch
     refreshData();
+    
+    // Initialize ML trend charts
+    if (typeof initTrendCharts === 'function') {
+      initTrendCharts();
+    }
   });
 </script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
 {% endblock %}
