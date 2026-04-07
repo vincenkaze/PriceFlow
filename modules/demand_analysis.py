@@ -320,13 +320,10 @@ class DemandAnalyzer:
             if product_ids:
                 db.session.commit()
                 print(f"[DEMAND] Pruned scores, kept last 10 per product")
-                    print(f"[DEMAND] Pruned {deleted} old scores for product {product_id}")
-
-            db.session.commit()
-            print(f"[DEMAND] Pruning complete for {len(latest_times)} products")
 
         except Exception as e:
             print(f"[DEMAND] Pruning error (non-fatal): {e}")
+            db.session.rollback()
             db.session.rollback()
 
 # Singleton / global instance (your call)
