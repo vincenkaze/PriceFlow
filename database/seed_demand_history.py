@@ -22,9 +22,10 @@ def seed_demand_history():
 
         now = datetime.utcnow()
         for product in products:
+            base_score = random.randint(25, 40)
             for i in range(30):
-                base_score = random.randint(20, 80)
-                score = max(1, base_score + random.randint(-15, 15))
+                score = base_score + i * 2 + random.randint(-5, 5)
+                score = max(1, min(120, score))
                 ts = now - timedelta(minutes=(30 - i) * 15)
 
                 ds = DemandScore(

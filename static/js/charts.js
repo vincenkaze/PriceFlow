@@ -24,6 +24,8 @@
             return;
         }
 
+        Chart.getChart(canvas)?.destroy();
+
         if (products.length === 0) {
             showNoDataMessage(canvas);
             return;
@@ -96,7 +98,8 @@
                 },
                 scales: {
                     y: {
-                        suggestedMin: 0,
+                        min: 0,
+                        max: 150,
                         title: {
                             display: true,
                             text: 'Demand Score'

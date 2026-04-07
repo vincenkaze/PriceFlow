@@ -132,6 +132,7 @@ class DemandRegressor:
                 "ml_forecast_line": []
             }
 
+        score_history = score_history[-30:]
         n = len(score_history)
         ema_short_values = self._ema_series(score_history, self.short_window)
         ema_long_values = self._ema_series(score_history, self.long_window)
