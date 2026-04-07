@@ -39,7 +39,28 @@
         const chartData = product.chart_data;
 
         if (!chartData.raw_points || chartData.raw_points.length < 3) {
-            showInsufficientData(canvas, product.name);
+            const ctx = canvas.getContext('2d');
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['No Data'],
+                    datasets: [{
+                        label: 'Insufficient Data',
+                        data: [null],
+                        borderColor: 'transparent',
+                        backgroundColor: 'transparent',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 0, max: 150, display: false },
+                        x: { display: false }
+                    }
+                }
+            });
             return;
         }
 
