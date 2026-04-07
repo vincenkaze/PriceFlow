@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, session
+from flask import Blueprint, render_template, redirect, url_for, request, flash, session, jsonify
 from flask_login import login_required, current_user
 from app.models import Product
 from app.extensions import db
@@ -92,4 +92,4 @@ def clear_cart():
 @cart_bp.route('/count')
 def cart_count():
     cart = session.get('cart', {})
-    return sum(cart.values())
+    return jsonify({'count': sum(cart.values())})

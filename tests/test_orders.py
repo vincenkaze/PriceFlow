@@ -45,7 +45,7 @@ class TestOrders:
         assert response.status_code == 200
         assert b'empty' in response.data.lower()
 
-    def test_order_confirmation_access(self, app, client, sample_user):
+    def test_order_confirmation_access(self, app, client, sample_user, sample_product):
         with app.app_context():
             with client.session_transaction() as sess:
                 sess['_user_id'] = str(sample_user)
