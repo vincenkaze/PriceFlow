@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from sqlalchemy import func
+from utils.datetime_utils import get_utc_now
 
 
 class AnalyticsService:
@@ -11,7 +12,7 @@ class AnalyticsService:
         
         try:
             products_today = Product.query.filter(
-                Product.created_at >= datetime.utcnow() - timedelta(days=1)
+                Product.created_at >= get_utc_now() - timedelta(days=1)
             ).count()
         except:
             products_today = 0
@@ -19,11 +20,11 @@ class AnalyticsService:
         latest_demand = DemandScore.query.order_by(DemandScore.calculated_at.desc()).limit(100).count()
         
         recent_changes = PriceHistory.query.filter(
-            PriceHistory.timestamp >= datetime.utcnow() - timedelta(hours=24)
+            PriceHistory.timestamp >= get_utc_now() - timedelta(hours=24)
         ).count()
         
         price_changes_24h = PriceHistory.query.filter(
-            PriceHistory.timestamp >= datetime.utcnow() - timedelta(hours=24)
+            PriceHistory.timestamp >= get_utc_now() - timedelta(hours=24)
         ).all()
         
         if price_changes_24h:
@@ -41,7 +42,7 @@ class AnalyticsService:
         low_stock_count = Product.query.filter(Product.stock < 10).count()
         
         today_actions = UserAction.query.filter(
-            UserAction.timestamp >= datetime.utcnow() - timedelta(hours=24)
+            UserAction.timestamp >= get_utc_now() - timedelta(hours=24)
         ).count()
         
         peak_percent = min(100, int((today_actions / 1000) * 100)) if today_actions > 0 else 0
@@ -73,7 +74,7 @@ class AnalyticsService:
     def get_trending_products(self, Product, DemandScore, limit: int = 10) -> list:
         latest_scores = (
             DemandScore.query
-            .filter(DemandScore.calculated_at >= datetime.utcnow() - timedelta(hours=24))
+            .filter(DemandScore.calculated_at >= get_utc_now() - timedelta(hours=24))
             .order_by(DemandScore.demand_score.desc())
             .limit(limit)
             .all()

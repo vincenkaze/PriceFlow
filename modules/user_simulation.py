@@ -1,11 +1,11 @@
 import random
 import time
 import threading
-from datetime import datetime
 
 from app.extensions import db   # ← MUST be from extensions
 from app.config import Config
 from app.models import SimulatedUser, UserType, Product, UserAction
+from utils.datetime_utils import get_utc_now
 
 # Import WebSocket emitter (optional - graceful fallback)
 try:
@@ -124,7 +124,7 @@ class SimulationEngine:
             if ws_emitter:
                 ws_emitter.emit_simulation_tick({
                     'actions': actions_this_tick,
-                    'timestamp': datetime.utcnow().isoformat()
+                    'timestamp': get_utc_now().isoformat()
                 })
 
     def _log_action(self, sim_user_id, product_id, action_type):
@@ -132,7 +132,7 @@ class SimulationEngine:
             sim_user_id=sim_user_id,
             product_id=product_id,
             action_type=action_type,
-            timestamp=datetime.utcnow()
+            timestamp=get_utc_now()
         )
         db.session.add(action)
 

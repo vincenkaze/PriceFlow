@@ -4,6 +4,7 @@ from sqlalchemy import func, case, distinct
 from app.extensions import db
 from app.config import Config
 from app.models import DemandScore, Product, UserAction
+from utils.datetime_utils import get_utc_now
 import time
 import threading
 import math
@@ -57,7 +58,7 @@ class DemandAnalyzer:
                 time.sleep(15)  # Refresh every 15 seconds
     
     def _get_window(self, end_time: Optional[datetime] = None) -> Tuple[datetime, datetime]:
-        end = end_time or datetime.utcnow()
+        end = end_time or get_utc_now()
         start = end - timedelta(minutes=self.lookback_minutes)
         return start, end
 
@@ -67,7 +68,7 @@ class DemandAnalyzer:
         end_time: Optional[datetime] = None,
     ) -> Dict:
         """Single-product demand score with decay — older actions count less."""
-        now = end_time or datetime.utcnow()
+        now = end_time or get_utc_now()
         window_start = now - timedelta(minutes=self.lookback_minutes)
 
         # Get all actions in window (we need timestamp for decay)
@@ -130,7 +131,7 @@ class DemandAnalyzer:
         NOW WITH DECAY: demand fades over time for realistic rising/falling trends.
         Batch inserts, optional cleanup of old scores.
         """
-        now = end_time or datetime.utcnow()
+        now = end_time or get_utc_now()
         window_start = now - timedelta(minutes=self.lookback_minutes)
         recent_window = now - timedelta(minutes=self.recent_minutes)
 
@@ -215,7 +216,7 @@ class DemandAnalyzer:
                     demand_score=int(decayed_score),
                     period_start=window_start,
                     period_end=now,
-                    calculated_at=datetime.utcnow(),
+                    calculated_at=get_utc_now(),
                 )
                 session.add(record)
                 records.append(record)

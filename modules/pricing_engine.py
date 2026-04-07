@@ -7,6 +7,7 @@ from app.models import Product, PriceHistory, DemandScore, PricingRule
 from app.config import Config
 from services.pricing_service import pricing_service
 from services.inventory_service import inventory_service
+from utils.datetime_utils import get_utc_now
 
 try:
     from modules.websocket_emitter import ws_emitter
@@ -83,7 +84,7 @@ class PricingEngine:
     def _update_prices(self):
         latest_scores = (
             db.session.query(DemandScore)
-            .filter(DemandScore.calculated_at >= datetime.utcnow() - timedelta(minutes=20))
+            .filter(DemandScore.calculated_at >= get_utc_now() - timedelta(minutes=20))
             .order_by(DemandScore.calculated_at.desc())
             .all()
         )
@@ -144,7 +145,7 @@ class PricingEngine:
                 old_price = product.current_price
                 new_price = pd['current_price']
                 product.current_price = new_price
-                product.last_updated = datetime.utcnow()
+                product.last_updated = get_utc_now()
                 product.stock = pd['stock']
                 
                 demand_score = demand_map.get(product.product_id, 0)
@@ -155,7 +156,7 @@ class PricingEngine:
                     demand_score=demand_score,
                     stock=product.stock,
                     change_reason="Dynamic pricing",
-                    timestamp=datetime.utcnow()
+                    timestamp=get_utc_now()
                 )
                 db.session.add(history)
                 updated += 1
@@ -170,7 +171,7 @@ class PricingEngine:
             if ws_emitter:
                 ws_emitter.emit_restock({
                     'products': restocked,
-                    'timestamp': datetime.utcnow().isoformat()
+                    'timestamp': get_utc_now().isoformat()
                 })
         
         if updated > 0 or restocked:
@@ -206,7 +207,7 @@ class PricingEngine:
                     'updated_count': updated,
                     'products': updated_products,
                     'restocked': [r['product_id'] for r in restocked],
-                    'timestamp': datetime.utcnow().isoformat()
+                    'timestamp': get_utc_now().isoformat()
                 })
 
 

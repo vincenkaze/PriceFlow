@@ -1,5 +1,5 @@
-from datetime import datetime
 from app.config import Config
+from utils.datetime_utils import get_utc_now
 
 
 class PricingService:
@@ -106,7 +106,7 @@ class PricingService:
             old_price = product['current_price']
             new_price, reason, zone = self.calculate_price(product, demand_score, rules)
             product['current_price'] = new_price
-            product['last_updated'] = datetime.utcnow()
+            product['last_updated'] = get_utc_now()
 
             zone_counts[zone] += 1
 
@@ -119,7 +119,7 @@ class PricingService:
                     'demand_score': demand_score,
                     'stock': current_stock,
                     'change_reason': reason,
-                    'timestamp': datetime.utcnow()
+                    'timestamp': get_utc_now()
                 })
 
         return {
