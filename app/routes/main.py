@@ -113,6 +113,7 @@ def home():
         num_sim_users=current_app.config['NUM_SIMULATED_USERS'],
         tick_rate=current_app.config['SIMULATION_TICK_RATE'],
         pagination=pagination_info,
+        total_products=Product.query.count(),
         error=None
     )
 
