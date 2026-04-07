@@ -21,9 +21,17 @@
       <span class="material-symbols-outlined group-hover:text-[#6366f1]">dashboard</span>
       <span class="font-medium">Dashboard</span>
     </a>
+    <a class="flex items-center gap-3 px-6 py-3 text-slate-400 opacity-70 hover:opacity-100 transition-all hover:bg-[#1f2b49]/30 hover:text-white group" href="{{ url_for('admin.pricing') }}">
+      <span class="material-symbols-outlined group-hover:text-[#6366f1]">payments</span>
+      <span class="font-medium">Pricing</span>
+    </a>
     <a class="flex items-center gap-3 px-6 py-3 text-white relative after:content-[''] after:absolute after:left-0 after:h-4 after:w-1 after:bg-[#6366f1] after:rounded-r-full group" href="{{ url_for('admin.products') }}">
       <span class="material-symbols-outlined text-[#6366f1]">inventory</span>
       <span class="font-medium">Products</span>
+    </a>
+    <a class="flex items-center gap-3 px-6 py-3 text-slate-400 opacity-70 hover:opacity-100 transition-all hover:bg-[#1f2b49]/30 hover:text-white group" href="{{ url_for('admin.analytics') }}">
+      <span class="material-symbols-outlined group-hover:text-[#6366f1]">analytics</span>
+      <span class="font-medium">Analytics</span>
     </a>
     
     <div class="pt-8 mt-8 border-t border-white/5">
