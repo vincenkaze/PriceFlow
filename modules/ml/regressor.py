@@ -50,7 +50,7 @@ class DemandRegressor:
         """Predict next demand score."""
         if not self._fitted or not SKLEARN_AVAILABLE or len(recent_scores) < 3:
             return None
-        X = [[recent_scores[-2], recent_scores[-1]]
+        X = [[recent_scores[-2], recent_scores[-1]]]
         return round(float(self._sklearn_model.predict(X)[0]), 2)
 
     def predict_series(self, recent_scores: List[int], steps: int = 3) -> List[float]:
@@ -62,7 +62,7 @@ class DemandRegressor:
         current = list(recent_scores[-2:])
 
         for _ in range(steps):
-            X = [current[-2], [current[-1]]]
+            X = [[current[-2], current[-1]]]
             pred = float(self._sklearn_model.predict(X)[0])
             predictions.append(round(pred, 2))
             current = [current[-1], pred]
