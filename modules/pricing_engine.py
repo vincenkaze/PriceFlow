@@ -5,19 +5,21 @@ from datetime import datetime, timedelta
 from app.extensions import db
 from app.models import Product, PriceHistory, DemandScore, PricingRule
 from app.config import Config
+from services.pricing_service import pricing_service
+from services.inventory_service import inventory_service
 
-# Import WebSocket emitter (optional - graceful fallback)
 try:
     from modules.websocket_emitter import ws_emitter
 except ImportError:
     ws_emitter = None
+
 
 class PricingEngine:
     def __init__(self):
         self.running = False
         self.thread = None
         self.app = None
-        self.interval = 10  # seconds — adjust to see changes faster/slower
+        self.interval = 10
 
     def start(self, flask_app):
         if self.running:
@@ -38,21 +40,17 @@ class PricingEngine:
                 time.sleep(self.interval)
 
     def _get_pricing_rules(self, product):
-        """Fetch pricing rules - first try category-specific, then global"""
-        # Try category-specific rule first
         rule = PricingRule.query.filter(
             PricingRule.category_id == product.category_id,
             PricingRule.is_active == True
         ).first()
         
         if not rule:
-            # Fall back to global rule
             rule = PricingRule.query.filter(
                 PricingRule.is_global == True,
                 PricingRule.is_active == True
             ).first()
         
-        # Return defaults if no rule found
         if not rule:
             return {
                 'demand_threshold_high': 80,
@@ -83,7 +81,6 @@ class PricingEngine:
         }
 
     def _update_prices(self):
-        # Get the most recent demand score for each product
         latest_scores = (
             db.session.query(DemandScore)
             .filter(DemandScore.calculated_at >= datetime.utcnow() - timedelta(minutes=20))
@@ -91,14 +88,12 @@ class PricingEngine:
             .all()
         )
 
-        # Keep only the latest per product
         demand_map = {}
         for score in latest_scores:
             pid = score.product_id
             if pid not in demand_map:
                 demand_map[pid] = score.demand_score
 
-        # DIAGNOSTIC: Check demand saturation
         total_products_count = Product.query.count()
         active_products = len(demand_map)
         if total_products_count > 0:
@@ -109,14 +104,11 @@ class PricingEngine:
                 logging.warning(f"[PRICE] {saturation_pct:.0f}% products active ({active_products}/{total_products_count})")
             logging.debug(f"[PRICE] Demand saturation: {active_products}/{total_products_count} ({saturation_pct:.1f}%)")
 
-        # DEBUG: Log actual demand score range for calibration
-        # TODO: Remove after calibration is complete
         scores = list(demand_map.values())
         if scores:
             score_min = min(scores)
             score_max = max(scores)
             score_avg = sum(scores) / len(scores)
-            # Count products in each threshold range (aligned with pricing heuristics)
             tier_very_high = sum(1 for s in scores if s > 100)
             tier_high = sum(1 for s in scores if 50 < s <= 100)
             tier_mid = sum(1 for s in scores if 10 < s <= 50)
@@ -125,105 +117,54 @@ class PricingEngine:
             logging.debug(f"[DEMAND] Range: {score_min:.1f} - {score_max:.1f}, Avg: {score_avg:.1f} | Tiers: >100:{tier_very_high}, 51-100:{tier_high}, 11-50:{tier_mid}, 6-10:{tier_low}, <=5:{tier_very_low}")
 
         products = Product.query.all()
-        updated = 0
-        restocked = []
-
-        # Zone distribution tracking
-        zone_counts = {"Zone 1 - High demand+low stock": 0, "Zone 2 - Rising": 0,
-                       "Zone 3 - Low demand+high stock": 0, "Zone 4 - Weak/Excess": 0, "Zone 5 - Stable": 0}
-
+        
+        product_dicts = []
+        rules_by_category = {}
         for product in products:
-            # ================== AUTO RESTOCK ==================
-            # If stock drops below threshold, restock automatically
-            base_stock = 80  # Default base stock level
-            if product.stock <= Config.AUTO_RESTOCK_THRESHOLD:
-                old_stock = product.stock
-                product.stock = min(product.stock + Config.AUTO_RESTOCK_AMOUNT, base_stock)
-                restocked.append({
-                    'product_id': product.product_id,
-                    'product_name': product.name,
-                    'old_stock': old_stock,
-                    'new_stock': product.stock,
-                    'amount_added': Config.AUTO_RESTOCK_AMOUNT
-                })
-                print(f"[RESTOCK] {product.name}: {old_stock} -> {product.stock} units")
-
-            demand_score = demand_map.get(product.product_id, 0)
-            stock_ratio = product.stock / 100.0 if product.stock > 0 else 0.0
-
-            # Get pricing rules from database
-            rules = self._get_pricing_rules(product)
-            demand_high = rules['demand_threshold_high']
-            demand_low = rules['demand_threshold_low']
-            stock_low = rules['stock_threshold_low'] / 100.0
-            stock_high = rules['stock_threshold_high'] / 100.0
-            stock_excess = rules['stock_threshold_excess'] / 100.0
-            increase_pct = rules['price_increase_pct'] / 100.0
-            decrease_pct = rules['price_decrease_pct'] / 100.0
-            min_price_pct = rules['min_price_pct']
-            max_price_pct = rules['max_price_pct']
-            mid_price_pct = rules.get('price_mid_pct', (min_price_pct + max_price_pct) / 2)
-            min_aggressive_pct = rules.get('price_min_aggressive_pct', min_price_pct * 0.95)
-
-            old_price = product.current_price
-            new_price = old_price
-            reason = "Stable"
-
-            # Balanced pricing rules based on demand-stock balance
-            # Uses rules from database
+            product_dict = {
+                'product_id': product.product_id,
+                'name': product.name,
+                'base_price': float(product.base_price),
+                'current_price': float(product.current_price),
+                'stock': product.stock,
+                'category_id': product.category_id
+            }
+            product_dicts.append(product_dict)
             
-            # Zone 1: INCREASE - Strong demand + decent stock (positive signal)
-            if demand_score > (demand_high * 0.75) and stock_ratio < stock_high:
-                new_price = min(product.base_price * max_price_pct, old_price * (1 + increase_pct * 0.5))
-                reason = "High demand"
-                zone_counts["Zone 1 - High demand+low stock"] += 1
-            # Zone 2: INCREASE - Rising demand
-            elif demand_score > (demand_high * 0.5) and stock_ratio < stock_high:
-                new_price = min(product.base_price * mid_price_pct, old_price * (1 + increase_pct * 0.25))
-                reason = "Rising demand"
-                zone_counts["Zone 2 - Rising"] += 1
-            
-            # Zone 3: DECREASE - Very weak demand + very high stock (BOTH extreme)
-            elif demand_score < (demand_low * 0.2) and stock_ratio > (stock_excess * 0.98):
-                new_price = max(product.base_price * min_price_pct, old_price * (1 - decrease_pct * 0.5))
-                reason = "Weak demand + excess stock"
-                zone_counts["Zone 3 - Low demand+high stock"] += 1
-            # Zone 4: DECREASE - Critically low demand OR critically excess stock (only in extreme cases)
-            elif demand_score < (demand_low * 0.1) or stock_ratio > 0.95:
-                new_price = max(product.base_price * min_aggressive_pct, old_price * (1 - decrease_pct * 0.5))
-                reason = "Critical" if demand_score < (demand_low * 0.1) else "Excess stock"
-                zone_counts["Zone 4 - Weak/Excess"] += 1
-            
-            # Zone 5: STABLE - Everything else (no price change)
-            else:
-                reason = "Stable"
-                zone_counts["Zone 5 - Stable"] += 1
-                pass  # new_price stays as old_price
-
-            new_price = round(new_price, 2)
-
-            if abs(new_price - old_price) > 0.01:
+            cat_id = product.category_id
+            if cat_id not in rules_by_category:
+                rules_by_category[cat_id] = self._get_pricing_rules(product)
+        
+        result = pricing_service.update_prices(product_dicts, demand_map)
+        
+        updated = 0
+        for i, product in enumerate(products):
+            pd = product_dicts[i]
+            if pd['current_price'] != product.current_price:
+                old_price = product.current_price
+                new_price = pd['current_price']
                 product.current_price = new_price
                 product.last_updated = datetime.utcnow()
-
+                product.stock = pd['stock']
+                
+                demand_score = demand_map.get(product.product_id, 0)
                 history = PriceHistory(
                     product_id=product.product_id,
                     old_price=old_price,
                     new_price=new_price,
                     demand_score=demand_score,
                     stock=product.stock,
-                    change_reason=reason,
+                    change_reason="Dynamic pricing",
                     timestamp=datetime.utcnow()
                 )
                 db.session.add(history)
                 updated += 1
-
+        
         db.session.commit()
-
-        # Log zone distribution
-        logging.debug(f"[PRICE] Zone distribution: {zone_counts}")
-
-        # Emit restock events if any products were restocked
+        
+        logging.debug(f"[PRICE] Zone distribution: {result['zone_counts']}")
+        
+        restocked = result['restocked']
         if restocked:
             print(f"[RESTOCK] {len(restocked)} products restocked")
             if ws_emitter:
@@ -235,18 +176,13 @@ class PricingEngine:
         if updated > 0 or restocked:
             print(f"[PRICE] Updated {updated} products - some prices just moved!")
             
-            # Emit detailed WebSocket event for homepage real-time updates
             if ws_emitter:
-                # Get updated products data for homepage
                 updated_products = []
-                for product in products:
-                    if product.current_price != product.base_price:
-                        # Get latest demand score for this product
-                        demand = DemandScore.query.filter_by(product_id=product.product_id)\
-                            .order_by(DemandScore.calculated_at.desc()).first()
-                        demand_score = demand.demand_score if demand else 0
+                for i, product in enumerate(products):
+                    pd = product_dicts[i]
+                    if pd['current_price'] != pd['base_price']:
+                        demand_score = demand_map.get(product.product_id, 0)
                         
-                        # Label based on actual demand score, not stock
                         if demand_score >= 80:
                             demand_label = 'HIGH DEMAND'
                         elif demand_score >= 60:
@@ -256,14 +192,14 @@ class PricingEngine:
                         else:
                             demand_label = 'STABLE'
                         
-                        change_pct = ((product.current_price - product.base_price) / product.base_price) * 100
+                        change_pct = ((pd['current_price'] - pd['base_price']) / pd['base_price']) * 100
                         updated_products.append({
                             'product_id': product.product_id,
-                            'current_price': float(product.current_price),
-                            'base_price': float(product.base_price),
+                            'current_price': float(pd['current_price']),
+                            'base_price': float(pd['base_price']),
                             'change_percent': round(change_pct, 1),
                             'demand_label': demand_label,
-                            'stock': product.stock
+                            'stock': pd['stock']
                         })
                 
                 ws_emitter.emit_price_change({
@@ -272,5 +208,6 @@ class PricingEngine:
                     'restocked': [r['product_id'] for r in restocked],
                     'timestamp': datetime.utcnow().isoformat()
                 })
+
 
 pricing_engine = PricingEngine()
