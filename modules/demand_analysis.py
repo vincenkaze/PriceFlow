@@ -5,6 +5,7 @@ from app.extensions import db
 from app.config import Config
 from app.models import DemandScore, Product, UserAction
 from utils.datetime_utils import get_utc_now
+from modules.ml.regressor import demand_regressor
 import time
 import threading
 import math
@@ -33,6 +34,7 @@ class DemandAnalyzer:
         self.lookback_minutes = lookback_minutes
         self.action_weights = action_weights or self.DEFAULT_WEIGHTS.copy()
         self.recent_minutes = Config.DEMAND_RECENT_MINUTES  # For trend detection
+        self._demand_history: Dict[int, List[int]] = {}
 
         # Pre-build case clauses once → tiny perf + safety win
         self._case_clauses = [
@@ -224,6 +226,17 @@ class DemandAnalyzer:
             session.flush()
 
         session.commit()
+
+        # Step 2.5: Online ML training - update regressor with new scores
+        for record in records:
+            pid = record.product_id
+            score = record.demand_score
+            if pid not in self._demand_history:
+                self._demand_history[pid] = []
+            self._demand_history[pid].append(score)
+            if len(self._demand_history[pid]) > 50:
+                self._demand_history[pid].pop(0)
+            demand_regressor.partial_fit(self._demand_history[pid])
 
         # Step 3: Apply penalty to inactive products (products with no recent activity)
         # This lets demand naturally fade for ignored products

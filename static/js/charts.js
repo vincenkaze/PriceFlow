@@ -71,7 +71,15 @@
                         borderWidth: 2,
                         tension: 0.3,
                         fill: false
-                    }
+                    },
+                    ...(chartData.ml_forecast_line && chartData.ml_forecast_line.length > 0 ? [{
+                        label: 'ML Forecast',
+                        data: chartData.ml_forecast_line,
+                        borderColor: '#f59e0b',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false
+                    }] : [])
                 ]
             },
             options: {
@@ -88,8 +96,7 @@
                 },
                 scales: {
                     y: {
-                        beginAtZero: true,
-                        max: 100,
+                        suggestedMin: 0,
                         title: {
                             display: true,
                             text: 'Demand Score'
