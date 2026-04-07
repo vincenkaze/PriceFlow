@@ -81,7 +81,9 @@
             {% endfor %}
           </select>
         </div>
-        <canvas id="trendChart" height="350"></canvas>
+        <div id="trendChart" class="w-full h-[350px] flex items-end gap-1 px-2 pb-8 border-b border-white/10 relative">
+          <!-- Bars injected by JS -->
+        </div>
       </div>
       
       <!-- Trend Table -->
@@ -111,7 +113,6 @@
 {% endblock %}
 
 {% block extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
   .glass-card {
     background: rgba(25, 37, 64, 0.4);

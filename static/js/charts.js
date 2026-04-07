@@ -18,90 +18,67 @@
     }
 
     function renderTrendChart(products, selectedId) {
-        const canvas = document.getElementById('trendChart');
-        if (!canvas) {
-            console.warn('[Charts] Canvas not found');
+        const container = document.getElementById('trendChart');
+        if (!container) {
+            console.warn('[Charts] Container not found');
             return;
         }
-
-        Chart.getChart(canvas)?.destroy();
 
         if (products.length === 0) {
-            showNoDataMessage(canvas);
+            container.innerHTML = '<div class="text-slate-400 text-center w-full">No data available</div>';
             return;
-        }
-
-        if (trendChart) {
-            trendChart.destroy();
         }
 
         const product = products.find(p => p.id === selectedId) || products[0];
         const chartData = product.chart_data;
 
         if (!chartData.raw_points || chartData.raw_points.length < 3) {
-            const ctx = canvas.getContext('2d');
-            trendChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['No Data'],
-                    datasets: [{
-                        label: 'Insufficient Data',
-                        data: [null],
-                        borderColor: 'transparent',
-                        backgroundColor: 'transparent',
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { min: 0, max: 150, display: false },
-                        x: { display: false }
-                    }
-                }
-            });
+            container.innerHTML = `<div class="text-slate-400 text-center w-full">Insufficient data for ${product.name}</div>`;
             return;
         }
 
-        const ctx = canvas.getContext('2d');
-        trendChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: chartData.timestamps.map(t => `T${t}`),
-                datasets: [
-                    {
-                        label: 'Raw Demand Score',
-                        data: chartData.raw_points,
-                        borderColor: '#94a3b8',
-                        backgroundColor: 'rgba(148, 163, 184, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        fill: true
-                    },
-                    {
-                        label: 'EMA Short (3)',
-                        data: chartData.ema_short,
-                        borderColor: '#22c55e',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        fill: false
-                    },
-                    {
-                        label: 'EMA Long (7)',
-                        data: chartData.ema_long,
-                        borderColor: '#3b82f6',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        fill: false
-                    },
-                    ...(chartData.ml_forecast_line && chartData.ml_forecast_line.length > 0 ? [{
-                        label: 'ML Forecast',
-                        data: chartData.ml_forecast_line,
-                        borderColor: '#f59e0b',
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        fill: false
+        const maxScore = Math.max(...chartData.raw_points, 120);
+        const barsHtml = chartData.raw_points.slice(-30).map((score, i) => {
+            const heightPct = Math.max(5, (score / maxScore) * 100);
+            const emaShort = chartData.ema_short?.[chartData.ema_short.length - 30 + i] || 0;
+            const emaLong = chartData.ema_long?.[chartData.ema_long.length - 30 + i] || 0;
+            return `
+                <div class="flex-1 flex flex-col items-center gap-1">
+                    <div class="w-full flex gap-[2px] items-end h-[300px]">
+                        <div class="flex-1 bg-slate-600/60 rounded-t hover:bg-slate-500 transition relative group" style="height: ${heightPct}%">
+                            <div class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-slate-300 opacity-0 group-hover:opacity-100 transition">${score}</div>
+                        </div>
+                        <div class="flex-1 bg-green-500/60 rounded-t" style="height: ${Math.max(5, (emaShort / maxScore) * 100)}%"></div>
+                        <div class="flex-1 bg-blue-500/60 rounded-t" style="height: ${Math.max(5, (emaLong / maxScore) * 100)}%"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = `
+            <div class="flex items-end gap-1 h-[300px] w-full pb-6 border-b border-white/20 relative">
+                ${barsHtml}
+                <div class="absolute bottom-0 left-0 w-full flex justify-between text-xs text-slate-500 pt-2">
+                    <span>T-${chartData.raw_points.length - 30}</span>
+                    <span>T${chartData.raw_points.length}</span>
+                </div>
+            </div>
+            <div class="flex gap-4 mt-2 text-xs">
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-slate-600/60 rounded"></div>
+                    <span class="text-slate-400">Raw</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-green-500/60 rounded"></div>
+                    <span class="text-slate-400">EMA-3</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-blue-500/60 rounded"></div>
+                    <span class="text-slate-400">EMA-7</span>
+                </div>
+            </div>
+        `;
+        return;
                     }] : [])
                 ]
             },
