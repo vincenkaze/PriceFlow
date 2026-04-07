@@ -299,39 +299,27 @@ class DemandAnalyzer:
             print(f"[DEMAND] Applied inactivity penalty to {penalized} products")
 
     def _prune_old_scores(self, product_ids: List[int]) -> None:
-        """Keep only the most recent score per product (SQLite-compatible)."""
+        """Keep the last 10 scores per product for trend analysis."""
         if not product_ids:
             return
 
         try:
-            # SQLite-compatible approach: get latest times per product, then delete older ones
-            # Step 1: Get the max calculated_at for each product
-            latest_times = (
-                db.session.query(
-                    DemandScore.product_id,
-                    func.max(DemandScore.calculated_at).label("max_time")
-                )
-                .filter(DemandScore.product_id.in_(product_ids))
-                .group_by(DemandScore.product_id)
-                .all()
-            )
-
-            if not latest_times:
-                return
-
-            # Step 2: Delete all but the latest for each product
-            # Process each product individually to avoid SQLite multi-table issues
-            for product_id, max_time in latest_times:
-                # Delete older records for this specific product
-                deleted = (
-                    db.session.query(DemandScore)
-                    .filter(
-                        DemandScore.product_id == product_id,
-                        DemandScore.calculated_at < max_time
+            for product_id in product_ids:
+                old_count = DemandScore.query.filter_by(product_id=product_id).count()
+                if old_count > 10:
+                    old_records = (
+                        DemandScore.query
+                        .filter_by(product_id=product_id)
+                        .order_by(DemandScore.calculated_at.desc())
+                        .offset(10)
+                        .all()
                     )
-                    .delete(synchronize_session='fetch')
-                )
-                if deleted > 0:
+                    for record in old_records:
+                        db.session.delete(record)
+
+            if product_ids:
+                db.session.commit()
+                print(f"[DEMAND] Pruned scores, kept last 10 per product")
                     print(f"[DEMAND] Pruned {deleted} old scores for product {product_id}")
 
             db.session.commit()
