@@ -12,6 +12,9 @@ Real-time dynamic pricing system with user simulation, demand scoring, rule-base
 
 ## Architecture
 
+## Architecture
+
+```text
 PriceFlow/
 ├── run.py                           # Entry point
 ├── requirements.txt                 # Python dependencies
@@ -49,7 +52,7 @@ PriceFlow/
 ├── services/
 │   ├── __init__.py
 │   ├── pricing_service.py           # Zone-based pricing logic
-│   ├── inventory_service.py        # Stock management
+│   ├── inventory_service.py         # Stock management
 │   └── analytics_service.py         # Dashboard statistics
 │
 ├── utils/
