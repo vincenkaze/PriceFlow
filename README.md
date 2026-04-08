@@ -13,41 +13,64 @@ Real-time dynamic pricing system with user simulation, demand scoring, rule-base
 ## Architecture
 
 PriceFlow/
-├── run.py                    # Entry point
-├── config.yaml               # Environment credentials (admin/user)
+├── run.py                           # Entry point
+├── requirements.txt                 # Python dependencies
+├── check_db.py                      # Database check utility
+├── README.md
+│
 ├── app/
-│   ├── __init__.py           # Flask app factory + blueprint registration
-│   ├── config.py             # Config classes (dev/prod/test)
-│   ├── extensions.py         # SQLAlchemy, Flask-Login, Migrate
-│   ├── models.py             # All database models
+│   ├── __init__.py                  # Flask app factory
+│   ├── config.py                    # Configuration classes
+│   ├── extensions.py                # SQLAlchemy, Flask-Login
+│   ├── models.py                    # Database models
+│   ├── templates/
+│   │   ├── base.html
+│   │   ├── home.html
+│   │   ├── product/detail.html
+│   │   ├── cart/cart.html
+│   │   └── orders/
+│   │       ├── history.html
+│   │       └── confirmation.html
 │   └── routes/
-│       ├── main.py           # Homepage + product detail
-│       ├── admin.py          # Admin panel + pricing
-│       ├── auth.py           # User login/register/logout
-│       ├── cart.py           # Cart operations
-│       ├── orders.py         # Checkout + order history
-│       └── api.py            # REST API for dashboards
-├── services/                 # Business logic (framework-agnostic)
-│   ├── pricing_service.py    # Zone-based pricing logic
-│   ├── inventory_service.py  # Stock management
-│   └── analytics_service.py  # Dashboard statistics
+│       ├── __init__.py
+│       ├── main.py
+│       ├── admin.py
+│       ├── auth.py
+│       ├── cart.py
+│       ├── orders.py
+│       └── api.py
+│
 ├── modules/
-│   ├── user_simulation.py    # 200 synthetic users with personalities
-│   ├── demand_analysis.py    # Demand scoring + online ML training
-│   ├── pricing_engine.py     # Background pricing loop
-│   └── ml/
-│       ├── classifier.py     # DemandClassifier (HIGH/MEDIUM/LOW)
-│       └── regressor.py       # DemandRegressor (OLS + SGDRegressor online)
+│   ├── user_simulation.py           # 200 synthetic users
+│   ├── demand_analysis.py           # Demand scoring + ML training
+│   ├── pricing_engine.py            # Background pricing loop
+│   └── websocket_emitter.py         # Real-time updates
+│
+├── services/
+│   ├── __init__.py
+│   ├── pricing_service.py           # Zone-based pricing logic
+│   ├── inventory_service.py        # Stock management
+│   └── analytics_service.py         # Dashboard statistics
+│
 ├── utils/
-│   ├── datetime_utils.py     # Centralized timestamp helpers
-│   └── validators.py        # Input validation
-├── static/js/
-│   └── charts.js             # Chart.js integration for dashboards
+│   ├── __init__.py
+│   ├── datetime_utils.py            # Timestamp helpers
+│   └── validators.py                # Input validation
+│
 ├── database/
-│   ├── schema.sql            # Full SQLite schema
-│   ├── seed.py              # Products, categories, sim users, pricing rules
-│   └── seed_demand_history.py # Seed historical demand data for ML charts
-└── tests/                    # 80+ unit tests
+│   ├── schema.sql                   # SQLite schema
+│   ├── seed.py                      # Seed data script
+│   └── seed_demand_history.py       # Demand history seeding
+│
+├── static/
+│   └── css/
+│       ├── input.css
+│       └── output.css
+│
+├── migrations/                      # Alembic migrations
+├── instance/                        # SQLite database
+├── node_modules/                    # Frontend dependencies
+└── venv/                            # Python virtual environment
 
 ## Tech Stack
 
