@@ -1,81 +1,61 @@
 import numpy as np
-from typing import List, Dict, Union, Optional
-
-try:
-    from sklearn.linear_model import SGDRegressor
-    SKLEARN_AVAILABLE = True
-except ImportError:
-    SKLEARN_AVAILABLE = False
+from typing import List, Dict, Optional
 
 
 class DemandRegressor:
     def __init__(self, short_window: int = 3, long_window: int = 7):
         self.short_window = short_window
         self.long_window = long_window
-        self.model = None
-        self._sklearn_model = None
-        self._fitted = False
-        self._x_train = []
-        self._y_train = []
-        self._min_samples = 5
-
-        if SKLEARN_AVAILABLE:
-            self._sklearn_model = SGDRegressor(
-                loss='squared_error',
-                random_state=42,
-                warm_start=True
-            )
-
-    def fit(self, X_train: np.ndarray, y_train: np.ndarray) -> None:
-        pass
-
-    def partial_fit(self, recent_scores: List[int]) -> None:
-        """Online learning: update model with new demand scores."""
-        if not SKLEARN_AVAILABLE or len(recent_scores) < 3:
-            return
-
-        scores = recent_scores[-(self._min_samples + 5):]
-        X, y = [], []
-        for i in range(len(scores) - 2):
-            X.append([scores[i], scores[i + 1]])
-            y.append(scores[i + 2])
-
-        if len(X) >= self._min_samples:
-            self._sklearn_model.partial_fit(X, y)
-            self._x_train = X[-self._min_samples:]
-            self._y_train = y[-self._min_samples:]
-            self._fitted = True
 
     def predict_next(self, recent_scores: List[int]) -> Optional[float]:
-        """Predict next demand score."""
-        if not self._fitted or not SKLEARN_AVAILABLE or len(recent_scores) < 3:
+        """Hybrid EMA + OLS: momentum-projected T+1 forecast (clamped to valid range)."""
+        if len(recent_scores) < 5:
             return None
-        X = [[recent_scores[-2], recent_scores[-1]]]
-        return round(float(self._sklearn_model.predict(X)[0]), 2)
+
+        arr = np.array(recent_scores[-15:])
+
+        ema_short = self._calculate_ema(arr, self.short_window)
+        ema_long = self._calculate_ema(arr, self.long_window)
+
+        recent = recent_scores[-10:]
+        x = np.arange(len(recent))
+        slope, intercept = self._ols_slope(x, np.array(recent))
+
+        damped_slope = slope * 0.6
+
+        forecast = ema_short + damped_slope
+
+        forecast = max(0, min(forecast, 150))
+        return round(float(forecast), 2)
 
     def predict_series(self, recent_scores: List[int], steps: int = 3) -> List[float]:
-        """Predict multiple future demand scores."""
-        if not self._fitted or not SKLEARN_AVAILABLE or len(recent_scores) < 3:
+        """OLS slope projection for T+1, T+2, T+3 — dampened, clamped."""
+        if len(recent_scores) < 5:
             return []
 
-        predictions = []
-        current = list(recent_scores[-2:])
+        recent = recent_scores[-15:]
+        x = np.arange(len(recent))
+        slope, intercept = self._ols_slope(x, np.array(recent))
 
-        for _ in range(steps):
-            X = [[current[-2], current[-1]]]
-            pred = float(self._sklearn_model.predict(X)[0])
-            predictions.append(round(pred, 2))
-            current = [current[-1], pred]
+        n = len(recent)
+        last_idx = n - 1
+
+        predictions = []
+        for step in range(1, steps + 1):
+            pred = intercept + slope * (last_idx + step * 0.3)
+            pred = max(0, min(pred, 150))
+            predictions.append(round(float(pred), 2))
 
         return predictions
 
-    def predict(self, X: Union[List[int], np.ndarray]) -> np.ndarray:
+    def predict(self, X) -> np.ndarray:
         X = np.array(X)
         if len(X) < 3:
             return np.array([0])
         return np.array([np.mean(X[-3:])])
 
     def analyze_trend(self, score_history: List[int]) -> Dict:
+        """Full trend analysis with OLS + EMA."""
         if len(score_history) < 3:
             return {
                 "trend": "insufficient_data",
@@ -108,7 +88,9 @@ class DemandRegressor:
         else:
             trend = "stable"
 
-        forecast = score_history[-1] + slope
+        ols_forecast = score_history[-1] + slope
+        ols_forecast = max(0, min(ols_forecast, 150))
+
         ml_forecast = self.predict_next(score_history)
 
         return {
@@ -117,40 +99,38 @@ class DemandRegressor:
             "confidence": round(float(max(0, min(1, r_squared))), 2),
             "ema_short": round(float(ema_short), 2),
             "ema_long": round(float(ema_long), 2),
-            "forecast": round(float(forecast), 2),
+            "forecast": round(float(ols_forecast), 2),
             "ml_forecast": ml_forecast
         }
 
     def get_chart_data(self, score_history: List[int]) -> Dict:
         if not score_history:
             return {
-                "ema_short": [],
-                "ema_long": [],
-                "raw_points": [],
-                "trend_line": [],
-                "timestamps": [],
-                "ml_forecast_line": []
+                "ema_short": [], "ema_long": [], "raw_points": [],
+                "trend_line": [], "timestamps": [], "ml_forecast_line": []
             }
 
-        score_history = score_history[-30:]
-        n = len(score_history)
-        ema_short_values = self._ema_series(score_history, self.short_window)
-        ema_long_values = self._ema_series(score_history, self.long_window)
+        history = score_history[-30:]
+        n = len(history)
+
+        ema_short_values = self._ema_series(history, self.short_window)
+        ema_long_values = self._ema_series(history, self.long_window)
 
         x = np.arange(n)
-        y = np.array(score_history)
+        y = np.array(history)
         slope, intercept = self._ols_slope(x, y)
         trend_line = [slope * i + intercept for i in range(n)]
 
-        ml_forecast_line = list(score_history)
-        if self._fitted and SKLEARN_AVAILABLE:
-            ml_preds = self.predict_series(score_history, steps=3)
+        ml_forecast_line = list(history)
+        ml_preds = self.predict_series(history, steps=3)
+        if ml_preds:
+            ml_forecast_line.append(history[-1])
             ml_forecast_line.extend(ml_preds)
 
         return {
             "ema_short": [round(v, 2) for v in ema_short_values],
             "ema_long": [round(v, 2) for v in ema_long_values],
-            "raw_points": score_history,
+            "raw_points": history,
             "trend_line": [round(v, 2) for v in trend_line],
             "timestamps": list(range(n)),
             "ml_forecast_line": [round(float(v), 2) for v in ml_forecast_line]
@@ -169,9 +149,8 @@ class DemandRegressor:
         if not values:
             return []
         alpha = 2 / (window + 1)
-        ema_values = []
         ema = float(values[0])
-        ema_values.append(ema)
+        ema_values = [ema]
         for val in values[1:]:
             ema = alpha * float(val) + (1 - alpha) * ema
             ema_values.append(ema)
@@ -181,19 +160,14 @@ class DemandRegressor:
         n = len(x)
         if n < 2:
             return 0.0, float(np.mean(y)) if len(y) > 0 else 0.0
-
         x_mean = np.mean(x)
         y_mean = np.mean(y)
-
         numerator = np.sum((x - x_mean) * (y - y_mean))
         denominator = np.sum((x - x_mean) ** 2)
-
         if denominator == 0:
             return 0.0, y_mean
-
         slope = numerator / denominator
         intercept = y_mean - slope * x_mean
-
         return slope, intercept
 
 

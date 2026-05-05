@@ -8,6 +8,19 @@ from app import create_app
 from app.extensions import db
 from app.models import DemandScore, Product
 
+PATTERNS = ['rising', 'stable', 'falling']
+
+def gen_scores(base, count, pattern):
+    scores = []
+    for i in range(count):
+        if pattern == 'rising':
+            scores.append(int(base + i * 5 + random.randint(-5, 15)))
+        elif pattern == 'falling':
+            scores.append(int(base - i * 5 + random.randint(-15, 5)))
+        else:
+            scores.append(int(base + random.randint(-10, 10)))
+    return scores
+
 def seed_demand_history():
     app = create_app()
     with app.app_context():
@@ -23,8 +36,9 @@ def seed_demand_history():
         now = datetime.utcnow()
         for product in products:
             base_score = random.randint(25, 40)
-            for i in range(30):
-                score = base_score + i * 2 + random.randint(-5, 5)
+            pattern = random.choice(PATTERNS)
+            scores = gen_scores(base_score, 30, pattern)
+            for i, score in enumerate(scores):
                 score = max(1, min(120, score))
                 ts = now - timedelta(minutes=(30 - i) * 15)
 

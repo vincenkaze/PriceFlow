@@ -68,6 +68,8 @@ class TestDemandRegressor:
         result = regressor.analyze_trend([20, 30, 40, 50, 60])
         assert result['trend'] == "rising"
         assert result['velocity'] > 0
+        assert result['ml_forecast'] is not None
+        assert 0 <= result['ml_forecast'] <= 150
 
     def test_analyze_trend_falling(self, regressor):
         result = regressor.analyze_trend([60, 50, 45, 40, 35])
@@ -115,36 +117,30 @@ class TestDemandRegressor:
         result = regressor.predict([])
         assert list(result) == [0]
 
-    def test_partial_fit_updates_model(self, regressor):
-        scores = [10, 20, 30, 40, 50, 60, 70]
-        regressor.partial_fit(scores)
-        assert regressor._fitted == True
+    def test_predict_next_returns_clamped_value(self, regressor):
+        result = regressor.predict_next([10, 20, 30, 40, 50])
+        assert result is not None
+        assert 0 <= result <= 150
 
-    def test_predict_next_returns_value(self, regressor):
-        scores = [20, 30, 40, 50, 60, 70, 80]
-        regressor.partial_fit(scores)
-        pred = regressor.predict_next(scores)
-        assert pred is not None
-        assert isinstance(pred, float)
+    def test_predict_next_insufficient_data_returns_none(self, regressor):
+        result = regressor.predict_next([10, 20])
+        assert result is None
 
-    def test_predict_next_insufficient_data(self, regressor):
-        regressor = DemandRegressor()
-        assert regressor.predict_next([10, 20]) is None
+    def test_predict_series_count(self, regressor):
+        result = regressor.predict_series([10, 20, 30, 40, 50, 60, 70], steps=3)
+        assert len(result) == 3
+        assert all(0 <= v <= 150 for v in result)
 
-    def test_predict_series(self, regressor):
-        scores = [20, 30, 40, 50, 60, 70, 80]
-        regressor.partial_fit(scores)
-        preds = regressor.predict_series(scores, steps=3)
-        assert len(preds) == 3
+    def test_predict_series_insufficient_data(self, regressor):
+        result = regressor.predict_series([10, 20])
+        assert result == []
 
     def test_ml_forecast_in_analyze_trend(self, regressor):
         scores = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-        regressor.partial_fit(scores)
         result = regressor.analyze_trend(scores)
         assert 'ml_forecast' in result
 
     def test_ml_forecast_line_in_chart_data(self, regressor):
         scores = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-        regressor.partial_fit(scores)
         result = regressor.get_chart_data(scores)
         assert 'ml_forecast_line' in result

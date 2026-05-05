@@ -34,6 +34,14 @@
             return;
         }
 
+        const MAX_VAL = 200;
+        chartData.raw_points = chartData.raw_points.map(v => Math.min(v, MAX_VAL));
+        chartData.ema_short = chartData.ema_short.map(v => Math.min(v, MAX_VAL));
+        chartData.ema_long = chartData.ema_long.map(v => Math.min(v, MAX_VAL));
+
+        const rawML = chartData.ml_forecast_line?.slice(-3) || [];
+        const mlData = rawML.map(v => Math.min(Math.max(v, 0), MAX_VAL));
+
         const labels = chartData.timestamps.map((t, i) => {
             const minsAgo = (chartData.raw_points.length - 1 - i) * 15;
             return minsAgo === 0 ? 'now' : `-${minsAgo}m`;
@@ -77,13 +85,14 @@
                     },
                     {
                         label: 'ML Forecast',
-                        data: [...Array(forecastStart).fill(null), ...(chartData.ml_forecast_line?.slice(-3) || [])],
+                        data: [...Array(forecastStart).fill(null), ...mlData],
                         borderColor: '#f59e0b',
                         borderDash: [5, 5],
                         borderWidth: 2,
                         tension: 0.3,
                         fill: false,
-                        pointRadius: 4,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
                         pointBackgroundColor: '#f59e0b'
                     }
                 ]
