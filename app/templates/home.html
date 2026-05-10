@@ -296,10 +296,10 @@
           <h2 class="text-4xl font-bold">Live Market Feed</h2>
         </div>
         <div class="flex items-center gap-4">
-          <select class="bg-[#1a1d24] border-none rounded-lg text-sm py-2.5 px-6 focus:ring-[#135bec] focus:ring-2 appearance-none pr-10 min-w-[200px] hover:bg-[#252a32] transition-colors cursor-pointer" id="category-filter">
+          <select class="bg-[#1a1d24] border-none rounded-lg text-sm py-2.5 px-6 focus:ring-[#135bec] focus:ring-2 appearance-none pr-10 min-w-[200px] hover:bg-[#252a32] transition-colors cursor-pointer" id="category-filter" onchange="handleCategoryChange(this)">
             <option value="All">All Categories</option>
             {% for cat in categories %}
-            <option value="{{ cat.category_id }}">{{ cat.name }}</option>
+            <option value="{{ cat.category_id }}" {% if selected_category == cat.category_id %}selected{% endif %}>{{ cat.name }}</option>
             {% endfor %}
           </select>
         </div>
@@ -619,32 +619,42 @@ function handleRestockEvent(restockedProducts) {
 // Initialize WebSocket on page load
 document.addEventListener('DOMContentLoaded', function() {
   initSocketIO();
+  
+  // Initial read from URL on page load (for pre-selection, no filter application)
+  const urlParams = new URLSearchParams(window.location.search);
+  const categoryParam = urlParams.get('category');
+
+  // Pre-select dropdown if URL has category
+  const select = document.getElementById('category-filter');
+  if (select && categoryParam) {
+    select.value = categoryParam;
+    // Also apply filter immediately
+    handleCategoryChange(select);
+  }
 });
 
 // ================== Category filtering ==================
-const categoryFilter = document.getElementById('category-filter');
-const productCards = document.querySelectorAll('#product-grid .product-card');
+function handleCategoryChange(select) {
+  const selected = select.value;
 
-if (categoryFilter && productCards.length > 0) {
-  categoryFilter.addEventListener('change', (e) => {
-    const selectedCategory = e.target.value;
-    
-    productCards.forEach(card => {
-      const cardCategory = card.getAttribute('data-category');
-      
-      if (selectedCategory === 'All' || cardCategory === selectedCategory) {
-        card.classList.remove('hidden');
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(10px)';
-        setTimeout(() => {
-          card.style.transition = 'all 0.5s ease-out';
-          card.style.opacity = '1';
-          card.style.transform = 'translateY(0)';
-        }, 50);
-      } else {
-        card.classList.add('hidden');
-      }
-    });
+  // Update URL param without page reload
+  const url = new URL(window.location.href);
+  if (selected === 'All') {
+    url.searchParams.delete('category');
+  } else {
+    url.searchParams.set('category', selected);
+  }
+  history.replaceState({}, '', url);
+
+  // Client-side filter
+  const cards = document.querySelectorAll('#product-grid .product-card');
+  cards.forEach(card => {
+    const cat = card.getAttribute('data-category');
+    if (selected === 'All' || cat === selected) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
   });
 }
 
