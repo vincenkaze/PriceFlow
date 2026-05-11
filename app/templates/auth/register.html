@@ -114,4 +114,57 @@
     </div>
   </div>
 </body>
+<script>
+document.querySelector('input[name="email"]').addEventListener('blur', function() {
+    const email = this.value.trim();
+    const errorEl = document.getElementById('email-error');
+    if (email && !/^[\w\.-]+@[\w\.-]+\.\w{2,}$/.test(email)) {
+        this.style.borderColor = '#ef4444';
+        if (!errorEl) {
+            const err = document.createElement('p');
+            err.id = 'email-error';
+            err.style.cssText = 'color:#ef4444;font-size:12px;margin:4px 0 0';
+            this.parentElement.appendChild(err);
+        }
+        document.getElementById('email-error').textContent = 'Enter a valid email (e.g. name@domain.com)';
+    } else {
+        this.style.borderColor = '';
+        if (errorEl) errorEl.remove();
+    }
+});
+
+document.querySelector('input[name="email"]').addEventListener('input', function() {
+    const errorEl = document.getElementById('email-error');
+    if (errorEl && /^[\w\.-]+@[\w\.-]+\.\w{2,}$/.test(this.value.trim())) {
+        this.style.borderColor = '';
+        errorEl.remove();
+    }
+});
+
+document.querySelector('input[name="username"]').addEventListener('blur', function() {
+    const val = this.value.trim();
+    const errorEl = document.getElementById('username-error');
+    if (val && (val.length < 3 || val.length > 50)) {
+        this.style.borderColor = '#ef4444';
+        if (!errorEl) {
+            const err = document.createElement('p');
+            err.id = 'username-error';
+            err.style.cssText = 'color:#ef4444;font-size:12px;margin:4px 0 0';
+            this.parentElement.appendChild(err);
+        }
+        document.getElementById('username-error').textContent = 'Username must be 3-50 characters';
+    } else {
+        this.style.borderColor = '';
+        if (errorEl) errorEl.remove();
+    }
+});
+
+document.querySelector('input[name="username"]').addEventListener('input', function() {
+    const errorEl = document.getElementById('username-error');
+    if (errorEl && this.value.trim().length >= 3 && this.value.trim().length <= 50) {
+        this.style.borderColor = '';
+        errorEl.remove();
+    }
+});
+</script>
 </html>
